@@ -1,0 +1,116 @@
+
+html, body {
+    font-family: 'Roboto Condensed', sans-serif;
+    margin: 0; padding: 0; width: 99%;
+    color: #000;
+    font-size: 16px;
+}
+body {
+    background-image: url('images/255102_gallery.world.jpg'), url('images/347112-admin_1920x1200.jpg');
+    background-size: cover;
+    background-origin: border-box;
+}
+@media screen and (min-width: 950px) {
+    :root {
+        --fontSize: 36px;
+        --width: 950px;
+    }
+}
+@media screen and (min-width: 620px) and (max-width: 949px){
+    :root {
+        --fontSize: 24px;
+        --width: 620px;
+    }
+    .arrowImage {
+        vertical-align: bottom;
+    }
+}
+@media screen and (max-width: 619px){
+    :root {
+        --fontSize: 16px;
+        --width: 380px;
+    }
+    .arrowImage {
+        vertical-align: bottom;
+    }
+}
+.mainBlock {
+    min-height: 100vh;
+    height: 100%;
+    box-sizing: border-box;
+    background-color: rgba(255, 255, 255, 0.8);
+    padding: 10px 10px 20px 20px;
+    margin-left: calc(50vw - var(--width) / 2);
+    width: var(--width);
+}
+
+.head {
+    display: inline-block;
+    padding-bottom: 5px;
+    text-align: center;
+    vertical-align: top;
+    /*width: 100%;*/
+    font-family: sans-serif
+}
+.head h1 {
+    font-size: var(--fontSize);
+}
+.head div {
+    font-size: calc(var(--fontSize) / 2);
+}
+.data {
+    font-family: 'Roboto', scans-serif;
+    font-size: var(--fontSize);
+}
+.dataBlock {
+    margin-top: 10px;
+}
+.dataText {
+    display: inline-block;
+    width: 64%;
+    padding: 5px;
+    box-sizing: border-box;
+    vertical-align: top;
+}
+.dataImage {
+    width:34%;
+    /*display: inline-block;*/
+    box-sizing: border-box;
+}
+.arrowImage {
+    height: 25px; vertical-align: baseline;
+}
+.headImage {
+    display: inline-block;
+    height: calc(var(--fontSize) * 2);
+
+}
+#info {
+    display: none;
+    position: fixed;
+    top: calc(50vh - 150px);
+    left: calc(50vw - 150px);
+    height: 300px; width: 300px;
+    background-color: #dddddd; color: #0000bf;
+    font-size: var(--fontSize); /*16px;*/
+    overflow: hidden;
+    border: #aaccee outset 3px;
+    border-radius: 8px;
+}
+#info div{
+    width: 100%;height: 24px;
+    background-color: #88ccee;
+    padding-left: 10px; font-size: 18px;
+    box-sizing: border-box;
+}
+#info p{
+    display: none; text-align: center; padding: 30px 10px 0 10px;"
+}
+#headClose {
+    background-color: #000088; color: #ffffff;
+    font-size: 12px;vertical-align: middle;
+    border-radius: 5px;
+    float: right;
+    width: 24px; height: 24px;
+    border-color: #000088 ;
+}

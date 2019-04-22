@@ -1,0 +1,820 @@
+@media screen and (min-width: 950px) {
+    :root {
+        --fontSize: 16px;
+        --width: 950px;
+        --wHello: 420px;
+        --hHead:42px;
+        --wLeft: 150px;
+    }
+}
+@media screen and (min-width: 620px) and (max-width: 949px){
+    :root {
+        --fontSize: 14px;
+        --width: 620px;
+        --wHello: 400px;
+        --hHead:37px;
+        --wLeft: 130px;
+    }
+}
+@media screen and (min-width: 420px) and (max-width: 619px){
+    :root {
+        --fontSize: 12px;
+        --width: 380px;
+        --wHello: 360px;
+        --hHead:32px;
+        --wLeft: 115px;
+    }
+}
+@media screen and (max-width: 419px){
+    :root {
+        --fontSize: 11px;
+        --width: 350px;
+        --wHello: 300px;
+        --hHead:28px;
+        --wLeft: 95px;
+
+    }
+}
+:root {
+    --hFooter: 8px;
+    --hPanelMin: 250px;
+    --hPanel: calc(100vh - var(--hHead) - var(--hFooter));
+    --wRight: 5px;
+}
+html, body {
+    font-family: 'Roboto Condensed', sans-serif;
+    margin: 0; padding: 0; width: 100%;
+    color: #008;
+    font-size: var(--fontSize);
+}
+body {
+    overflow: hidden;
+    background-image: url('image/fon.jpg');
+    background-size: auto 100vh;
+    background-origin: border-box;
+    background-position: center;
+}
+button {cursor: pointer}
+button[disabled] {cursor: default}
+/****************** Главны заголовок *******************/
+#headDialogs {
+    height: var(--hHead);
+    width: 100vw;
+    background-color: rgba(187,221,255,0.5 ); /* #bbddff; */
+    padding: 0;
+    box-sizing: border-box;
+    /*text-align: center;*/
+    font-size: calc(var(--hHead) - 10px);
+    /*overflow-x: auto;*/
+}
+#headDialogs>img {
+    float: left; height: var(--hHead); margin-left: 2px;
+    margin-right: 2px;
+}
+/*#headDialogsTxt {
+    padding: 3px 10px;
+    vertical-align: 5px;
+    display: inline-block;
+    height: 100%;
+    box-sizing: border-box;
+    text-align: center;
+    min-width: calc(100vw - var(--wLeft) - var(--hHead) * 10);
+}*/
+#headDialogs>button {
+    padding: 1px 3px;
+    border-radius: calc(var(--hHead) / 7);
+    cursor: pointer;
+}
+#headDialogs .buttonRight {
+    float: right;
+}
+#headDialogs>button:disabled {
+    background-color: #888888;
+}
+#headDialogs>button>img {
+    height: calc(var(--hHead) - 10px);
+}
+#headDialogs .space{
+    width: 10px; /*var(--hHead);*/
+    height: 5px;
+    display: inline-block;
+    float: right;
+}
+
+/***************** Область данных *****************/
+.winSoft {
+    /*position: fixed;
+    z-index: 9900;*/
+    background-color: rgba(238,238,255,0.5); /* #eef;*/
+    color: #000088;
+    font-size: 14px;
+    /*border: double #295f98;*/
+    display: inline-block;
+    height: calc(100vh - var(--hHead) - var(--hFooter));
+}
+
+/******************** Левая область - список контактов ***************/
+.winSoftLeft {
+    /*left: 16px;*/
+    width: var(--wLeft);
+    overflow-x: hidden;
+    overflow-y: auto;
+    cursor: pointer;
+    border-right: 1px solid #e2dfe0;
+    box-sizing: border-box;
+}
+
+.trUser {
+    width: 100%; height: 4em; vertical-align: center;word-wrap: inherit; cursor: pointer;
+    text-align: left;
+
+}
+.trUserNew {
+    background-color: rgba(255,221,221,0.5); /*#ffdddd;*/
+}
+.trUserSelect {
+    background-color: rgba(136,204,238,0.5); /* #8ce;*/
+}
+.tdUser {
+    width: 96px;
+}
+.tdUser span {
+    font-weight: 600;
+}
+
+/****************  Правая область ********************/
+.winSoftRight {
+    width: calc(100vw - var(--wLeft) - var(--wRight)); /* 10px);*/
+    overflow: hidden;
+}
+/***************** Видео и голос  ****************/
+#videoBlock {
+    overflow: auto;display: none;
+    max-height: calc(100% - var(--hPanel));
+}
+#screenBlock {
+    width: calc(100% - 2px);
+    display: none;
+    padding: 0;
+    margin: 0;
+}
+#screen {
+    width: 100%;
+}
+
+.userVideoBlock {
+    width: calc(50% - 2px); display: inline-block;
+    overflow-y: auto;
+    /*max-height: calc(50vw - var(--wLeft) / 2);*/
+}
+.videoHeader {
+    background-color: chartreuse; width: 100%; height: 24px;
+}
+.videoHeadTxt {
+    display: inline-block;
+    width: calc(100% - 55px);
+    padding-left: 5px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    white-space: nowrap;
+    vertical-align: middle;
+}
+.videoHeader button {
+    height: 24px; float: right; padding: 0; width: 24px;
+}
+.videoHeader>img {
+    height: 24px; float: right; padding: 0; width: 24px;
+}
+.imgVideo {
+    cursor: pointer;
+}
+
+.bellImage {
+    position: absolute; top: 52px; right: 20px; width: 128px;
+    background-color: rgba(255,255,255,0);
+    z-index: 9002;
+}
+
+/***************** Панель переписки *********************/
+.panel {
+    height: var(--hPanel);
+    width: 100%; display: none
+}
+
+.dialogs {
+    overflow-y: auto; margin: 0; padding: 5px; box-sizing: border-box;vertical-align: top;
+    height: calc(100% - 53px);
+    /*min-height: calc(var(--hPanelMin) - 53px);*/
+}
+.dialogs>li {cursor: default;list-style: none;margin: 0; overflow: hidden;padding-left: 0px;}
+/*li ul {padding-left: 16px;}*/
+li input {display: none;}
+/*input + label + app-node {display: none}
+input:checked + label + app-node {display: block;}*/
+
+/*input + label:before {*/
+.buttonPlus {
+    /*content: '';*/
+    display: inline-block;
+    height: 16px; width: 16px;
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAALCAIAAAAmzuBxAAAACXBIWXMAAAsSAAALEgHS3X78AAAAkElEQVQYlXWOvRWDQAyDv/DYK2wQSro8OkpGuRFcUjJCRmEE0TldCpsjPy9qzj7Jki62Pgh4vnqbbbEWuN+use/PlArwHccWGg780psENGFY6W4YgxZIAM339WmT3m397YYxxn6aASslFfVotYLTT3NwcuTKlFpNR2sdEak4acdKeafPlE2SZ7sw/1BEtX94AXYTVmyR94mPAAAAAElFTkSuQmCC) no-repeat 0 5px;
+}
+/*input: checked + label:before {*/
+.buttonMinus {
+    /*content: '';*/
+    display: inline-block;
+    height: 16px; width: 16px;
+    background: url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAsAAAALCAIAAAAmzuBxAAAACXBIWXMAAAsSAAALEgHS3X78AAAAeklEQVQYlX2PsRGDMAxFX3zeK9mAlHRcupSM4hFUUjJCRpI70VHIJr7D8BtJ977+SQ9Zf7isVG16WSQC0/D0OW/FqoBlDFkIVJ2xAhA8sI/NHbcYiFrPfI0fGklKagDx2F4ltdtaM0J9L3dxcVxi+zv62E+MwPs7c60dClRP6iug7wUAAAAASUVORK5CYII=) no-repeat 0 5px;
+}
+.mess {
+    list-style: none; padding-left: 0px
+}
+.messTime {
+    display: inline-block; float: right; padding-left: 10px; font-size: 12px;
+}
+.messMtText, .messHeText {
+    white-space: pre-wrap;
+}
+.messMy {
+    color: #8800ff; background-color: rgba(236,255,236, 0.5); /*#ebffeb;*/
+    margin-top: 2px;
+}
+.messMyTime {
+    color: #ff00ff;
+    display: inline-block; float: right; padding-left: 10px; font-size: 12px;
+}
+.messMyPad {
+    padding-left: 0px;
+}
+.messMyName {
+    color: #ff00ff; padding-right: 2px;
+}
+.messHe {
+    color: #0044ff; background-color: rgba(238,238,255, 0.5); /*#ebebff;*/
+    margin-top: 2px;
+}
+.messHeTime {
+    color: #007777; display: inline-block; float: right; padding-left: 10px; font-size: 12px;
+}
+.messHePad {
+    padding-left: 15px;
+}
+.messHeName {
+    color: #007777; padding-right: 2px;
+}
+/*
+span {margin-left: 16px;color: #0022bb;}
+label, span {cursor: pointer;}
+label:hover, span:hover {background-color: #ccccdd;}*/
+
+.new {
+    color: #11aa11;
+}
+.old {
+    color: #1111aa;
+}
+.nb {
+    color: #aa1111;
+}
+
+/************ Информационный блок переписки и область ввода сообщений **************/
+.dialogsInfo {
+    height: 24px; margin: 0; padding: 0; width: 100%; background-color: #e4e4f8;
+}
+@keyframes writes {
+    from {margin-left: 10px;}
+    to {margin-left: 30px; }
+}
+@keyframes writesup {
+    from {margin-top:0px;}
+    to {margin-top:-2px; }
+}
+.writes {
+    animation: writes 4s infinite linear, writesup 1s infinite linear;
+    height: 16px;
+    margin-right: 10px;
+}
+
+.textareaBlock {
+    border: none; padding: 0 5px 0 5px; width: 100%; box-sizing: border-box
+}
+textarea {
+    margin: 0;
+    border: none;
+    /*height: 25px;*/
+    width: calc(100% - 5px);
+    resize: none;
+    height: 21px;
+    box-sizing: content-box;
+}
+
+
+/********* Форма авторизации *********/
+
+#hello {
+    font-family: 'Roboto Condensed', helvetica neue, arial, verdana;
+    font-size: var(--fontSize);
+    width: var(--wHello);
+    left: calc(50vw - var(--wHello) / 2);
+    top:  calc(50vh - var(--wHello) / 2);
+    position: fixed;
+    z-index: 9999;
+    background: #C8BCB6;
+    border-radius: 10px;
+    border-style: outset;
+    color: #000000;
+    display: none;
+}
+#hello>header, #exchangeBlock>header, #settingsBlock>header {
+    padding-bottom: -10px;
+    height: 25px;
+    background-color: #bbddff;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    /*cursor: move;*/
+}
+#hello>header>img, #exchangeBlock>header>img, #settingsBlock>header>img {
+    margin: 0px; padding: 0; height: 24px;
+    vertical-align: top;
+}
+#hello>header>span, #exchangeBlock>header>span, #settingsBlock>header>div {
+    display: inline-block;
+    margin: 5px;
+    font-size: var(--fontSize);
+    vertical-align: 15px;
+    font-family: verdana, arial sans-serif;
+}
+#identExit, #exchangeHide, #exchangeExit, #settingsExit {
+    float: right;
+    color: #bbddff;
+    font-weight: bold;
+    font-size: 20px;
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+    background-color: #800;
+    line-height: 23px;
+    font-family: 'Roboto', scans-serif;
+    width: 23px;
+}
+.identData {
+    background: #D8CCC6;
+    /*position: relative;*/
+    border-radius: 5px;
+    border: outset 2px #B3A39A;
+    margin: 15px;
+    padding: 20px;
+calc(var(--wHello) - 70px);
+    border-radius: 5px;
+    box-sizing: border-box;
+}
+#login {
+    background: left url("image/login-24.png") no-repeat #fff;
+}
+#password {
+    background: left url("image/password-24.png") no-repeat #fff;
+}
+#email {
+    background: left/24px url("image/email1.png") no-repeat #fff;
+
+}
+#login, #password, #email {
+    margin-bottom: 15px;
+    padding: 10px 0 10px 34px;
+    border-radius: 5px;
+    border: #ccc 2px inset;
+    width: calc(var(--wHello) - 70px);
+    box-sizing: border-box;
+    display: block;
+    /*float: left;*/
+}
+#login::placeholder, #password::placeholder, #emal::placeholder {
+    color: #83635A;
+}
+.identSavePass {
+    display: inline-block;
+    padding: 5px 0 5px 5px;
+    margin-bottom: 5px;
+    width: calc(var(--wHello) - 70px);
+    border-radius: 5px;
+    border: outset 2px #B3A39A;
+    background-color: #C8BCB6;
+    cursor: pointer;
+    box-sizing: border-box;
+}
+.identSaveText {
+    padding-left: 5px;
+    /*font-size: 13px;*/
+    color: #111;
+}
+.identButtons {
+    border: none;
+    margin: 0 8px 15px calc(var(--wHello) / 2 - 70px);
+}
+.identButton {
+    border: none;
+    display: block;
+    float: left;
+    border-radius: 5px;
+    text-shadow: 0 1px 0 rgba(0, 0, 0,0.7);
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.5), 0 17px 2px rgba(255, 255, 255, 0.2) inset, 0 5px 5px rgba(255, 255, 255, 0.2) inset;
+    font-weight: 500 ;
+    height: 35px;
+    width: 120px;
+    padding: 0;
+    cursor: pointer;
+    color: #fff;
+    background-color: #822;
+    /*font-size:14px ;*/
+}
+
+.identLinks>a:link {
+    color: #000088;
+}
+.identComment {
+    display: inline-block;
+    padding: 5px 5px 0 5px;
+    /*margin: 8px;*/
+    border-radius: 5px;
+    border: outset 2px #B3A39A;
+    background-color: #C8BCB6;
+    /*font-size: 14px;*/
+    font-weight: 500;
+    font-family: 'Roboto Condensed', sans-serif;
+    color: #fff;
+}
+.identLinks {
+    font-size: 13px;
+    color: #008;
+    padding: 0 10px 0 10px
+}
+
+/************************               Переслать файлы            **********************/
+#exchangeBlock, #settingsBlock {
+    font-family: 'Roboto Condensed', helvetica neue, arial, verdana;
+    font-size: var(--fontSize);
+    width: var(--wHello);
+    left: calc(50vw - var(--wHello) / 2);
+    top:  calc(50vh - var(--wHello) * 0.75);
+    position: fixed;
+    z-index: 9001;
+    border-radius: 10px;
+    background-color: #eedddd;
+    border-color: #ffeedd;
+    border-style: outset;
+    color: #000000;
+    display: none;
+    overflow: hidden;
+}
+#exchangeBlock>header>div {
+    display: inline-block;
+    margin: 5px;
+    /*font-size: 14px;*/
+    vertical-align: 15px;
+    text-overflow: ellipsis;
+    color: #0000de;
+    overflow: hidden;
+    white-space: nowrap;
+    width: calc(var(--wHello) - 125px);
+}
+.cuts {
+    height: 35px; /*calc(var(--fontSize) * 2.5);*/
+    padding-right: 10px;
+    display: block;
+}
+
+#sendFileCut, #receiveFileCut, #messengerCut, .cuts>div {
+    display: inline-block;
+    border-color: #eee;
+    color: #242;
+    background-color: buttonface;;
+    text-align: left;
+    cursor: pointer;
+    width: calc(33% - 3px);
+    line-height: 28px; /* calc(var(--fontSize) * 2);*/
+    box-sizing: border-box;
+    padding-left: 5px;
+    border-radius: 5px;
+}
+#countDownload {
+    font-weight: bold;
+    color: #000088;
+    /*text-decoration-line: underline;*/
+}
+
+.cuts img {
+    height: 28px; /*calc(var(--fontSize) * 2);*/
+    padding-left: 5px;
+    padding-right: 5px;
+    vertical-align: middle;
+}
+#sendCut, #receiveCut, #messengerSec {
+    border-right: #cccccc outset;
+    border-bottom: #cccccc outset;
+    margin-top: 0px;
+    padding-top: 5px;
+    overflow: hidden;
+    height: 300px /*calc(100vh - var(--hHead) - 145px);*/
+}
+#sendListFile {
+    list-style-type: none;
+    padding: 0;
+    max-height: calc(100% - 85px);
+    overflow-y: auto;
+    display: block;
+    margin: 0;
+}
+#receiveListFile, #messengerList {
+    list-style-type: none;
+    padding: 0;
+    height: calc(100% - 45px);
+    overflow-y: auto;
+    display: block;
+    /*margin: 0;*/
+    margin:3px 0;
+    border: inset #ffeedd;
+    background-color: #ffffff;
+    box-sizing: border-box;
+}
+#sendListFile>li, #receiveListFile>li  {
+    width: 100%; height: 24px; box-sizing: border-box;
+    margin-top: 2px;
+    background-color: #ffffff;
+}
+#sendListFile .fileName, #receiveListFile .fileName{
+    display: inline-block;
+    width: calc(100% - 42px);
+    text-overflow: ellipsis;
+    /*text-decoration-line: underline;*/
+    color: #0000de;
+    overflow: hidden; white-space: nowrap;
+    background-image: url('image/sendFile1.png');
+    background-size: 18px;
+    background-repeat: no-repeat;
+    padding-left: 24px;
+    line-height: 20px;
+    cursor: pointer;
+    border: #ddeeff 1px solid;
+}
+#sendListFile .fileName:hover, #receiveListFile .fileName:hover{
+    border-color: #bbddee;
+}
+#sendListFile .fileSendClear, #receiveListFile .fileSendClear{
+    float: right;
+    display: inline-block;
+    width: 14px;
+    text-align: center;
+    line-height: 20px;
+    cursor: pointer;
+    border: #ddeeff 1px solid;
+}
+#sendListFile .fileSendClear:hover, #receiveListFile .fileSendClear:hover{
+    border-color: #bbddee;
+}
+#labelFile {
+    color:#555; padding:0; width:100%;
+    margin:3px 0; display: inline-block; border: inset #ffeedd;
+    border-radius: 3px;
+    height: calc(100% - 40px);
+    background-color: #ffffff;
+    background-image: url('image/receiveFile.png');
+    background-size: 24px;
+    background-repeat: no-repeat;
+    background-position-x: 5px;
+    background-position-y: top;
+    box-sizing: border-box;
+}
+#labelFile:hover,.labelFile:focus{
+    color:#888;border-color:#ffeedd
+}
+#sendFileInput, #inputFoto {
+    width:.1px;height:.1px;opacity:0;
+    overflow:hidden;position:absolute;z-index:-1
+}
+#sendFileInput + .labelFile {
+    overflow:hidden;text-overflow:ellipsis;
+    white-space:nowrap;padding:0 10px;cursor:pointer
+}
+#labelFile>div {
+    color: #aaa;
+    padding-left: 34px;
+    /*padding-bottom: 95%;*/
+    line-height: 30px;
+}
+
+#sendFilesButton, #clearFilesButton, #clearLoadFilesButton {
+    margin-right: 5px;
+    height: 25px;
+    float: right;
+}
+.sendCutFooter {
+    line-height: 35px; padding-left: 8px;
+    background-color: #eedddd;
+    /*border-top: #cccccc 2px solid;*/
+    position: sticky;
+    bottom: 0px;
+    /*margin-top: 2px;*/
+    padding-top: 5px;
+}
+.myMessageStr {
+    display: block; font-size: 10px; color: #008800
+}
+.myMessageTxt {
+    /*display: inline-block;*/ font-size: var(--fontSize); color: #016640; padding-left: 4px; background-color: #ffeeff;
+}
+.heMessageStr {
+    display: block; font-size: 10px; color: #ff00ff
+}
+.heMessageTxt {
+    /*display: inline-block;*/ color: #880088; padding-left: 4px; background-color: #eeffee;
+    font-size: var(--fontSize);
+}
+
+#myMessage {
+    width: calc(100% - 42px); margin-left: 5px; display: inline-block;
+    box-sizing: content-box; background-color: #ffeeee; border: #ddcccc solid 1px
+}
+#myMessageSend {
+    cursor: pointer; height: 29px; float: right; margin-right: 5px
+}
+
+/********************* Форма настройки ****************/
+.selectNone {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+#modal {
+    display: none; position: fixed;
+    top: 0; left: 0; width: 100vw; height: 100vw;
+    background: rgba(153,153,153,0.3); z-index: 9000;
+}
+#messageOk {
+    /*font-family: 'Roboto Condensed', helvetica neue, arial, verdana;*/
+    font-size: calc(var(--fontSize) + 1px);
+    font-weight: 500;
+    width: 250px;
+    left: calc(50vw - 125px);
+    top:  calc(50vh - 125px);
+    position: fixed;
+    z-index: 9999;
+    border-radius: 5px;
+    background-color: #008844;
+    border-color: #22ff22;
+    /*background-color: #cc2222;
+    border-color: #ff8888;*/
+    border-style: outset;
+    color: #ffffff;
+    padding: 10px;
+    text-align: center;
+}
+
+.cleanBlock {
+    position: absolute; right: 0px;top: -4px;font-size: 16px;
+    color: #8e0000; padding: 0 2px 0 3px; cursor: pointer; font-weight: bold;
+    background-color: rgba(111,111,111,0.1);
+}
+.cleanBlock:hover {
+    border-left: #cccccc 1px solid ;
+    border-right: #cccccc 1px solid ;
+}
+
+#settingsBlock button {
+    font-size: var(--fontSize);
+    font-family: 'Roboto Condensed', sans-serif;
+}
+/******************************* Настройка медиа-устройств ***************/
+#settingsMedia select {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: 11px;
+    width: calc(100% - 35px);
+}
+#settingsMedia>label, #resolution>label {
+    width: 100%; height: 20px; display: block;margin: 2px;
+}
+#settingsMedia label {cursor: pointer}
+#settingsMedia img {
+    height: 16px; padding: 0 5px;vertical-align: middle; cursor: default;
+}
+#settingsVideoBlock {
+    display: inline-block;
+    background-color: #fff; margin-left: 3px;
+    width: calc(100% - 100px);
+    min-height: calc(var(--wHello) * 0.75 - 75px);
+    max-height: calc(var(--wHello) * 1.25 - 125px);
+}
+#resolution {
+    display: inline-block; vertical-align: top; float: right;cursor: pointer;
+}
+
+#resolution>button {
+    margin-left: 3px; font-family: 'Roboto Condensed', sans-serif; font-size: 12px; width: 13ch; display: block; padding-left: 3px;
+}
+
+/************************ Другие настройки ********************/
+
+#settingsOther{
+    margin: 0;
+    padding: 6px;
+}
+#settingsOther li {
+    padding: 0px;
+}
+#settingsOther span {
+    padding: 0 10px 10px 10px;
+    /*font-size: var20px;*/
+    color: #000000;
+    /*vertical-align: 5px;*/
+}
+
+.set {
+    width: calc(var(--fontSize) + 3px);
+    display: inline-block;
+    cursor: pointer;
+}
+#settingsOther img {
+    vertical-align: -4px;
+}
+
+/************************ Персональные данные ******************/
+#privateCut {
+    float: left;display: inline-block; width: 80px; margin-right: 10px;
+}
+.cutPerson {
+    margin: 1px 0; width: 100%;
+    box-sizing: border-box; padding: 5px;
+    background-color: #ffeeee; border-style: outset;
+    text-align: center; vertical-align: middle;
+    border-radius: 5px; border-color: #dddddd;
+    cursor: pointer;
+}
+.privateBlock {
+    width: calc(100% - 90px)
+}
+#person span, #ident span {
+    box-sizing: border-box; padding: 5px 0 0 5px; width: 10ch;display: inline-block;
+}
+
+#person input, #ident input {
+    width: calc(100% - 12ch);
+}
+#person button, #ident button {
+    float: right; margin: 10px; height: 28px;
+}
+
+#fotoList {
+    border: #cccccc outset;
+    margin: 5px 5px 0px 0px;
+}
+#fotoList>ul {
+    margin: 0;
+    padding: 5px;
+    max-height: 100px; overflow-y: auto; list-style-type: none;
+    cursor: pointer;
+}
+#fotoList li {
+    line-height: 1.5;
+}
+#fotoList>label {
+    padding: 5px;
+    display: block;
+    font-size: 13px;
+    border-top: #888888 dashed 1px ;
+}
+#fotoList:hover {
+    border-color:#ffeedd
+}
+#foto button {
+    height: 24px;
+    margin: 5px 0;
+}
+/****************** Поиск контактов ***************************/
+#find {
+    color: #000088;
+}
+#searchDetails input[type="checkbox"] {
+    padding: 2px 0;
+}
+#searchDetails span {
+    width: 10ch; padding: 2px; display: inline-block;
+}
+#searchDetails input[type="text"], #searchDetails input[type="email"], #searchDetails select {
+    width: calc(100% - 16ch);
+}
+/*#findCuts {
+    margin-top: 2px;
+}
+#findCuts div {
+    display: inline-block;text-align: center; vertical-align: middle; background-color: #fae9e9;
+    min-width: 30%; box-sizing: border-box;line-height: 28px; max-width: 33%;
+}*/
+#find button {
+    float: right; margin-right: 5px;
+}
+#foundContact {
+    overflow-y: auto; max-height: 150px;min-height: 100px; margin: 5px 20px 5px 0px;
+    background-color: #ffffff; border: inset; padding-left: 25px; padding-top: 5px;
+}
+#foundContact ol {
+    padding: 5px; display: block;
+}

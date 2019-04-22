@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="autoSelect.css" type="text/css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Condensed:r,b&amp;subset=cyrillic">
+    <title>Выбор автомобиля</title>
+</head>
+<body>
+<main>
+    <header>
+        <img src="image/searchAuto-24.png">
+        <button  id="identExit" type="button">&times;</button>
+        <span>Выбор автомобиля</span>
+    </header>
+    <section id="cuts">
+        <span style="vertical-align: middle;
+        display: table-cell;
+        width: 8ch; /*75px;*/
+        ">Выбор:</span>
+        <!--div style="/*display: table-row*/"-->
+        <label id="cutMod" title="по модели" class="cutsCurrent"><input type="radio" name="sion" value="1" checked><span>по модели</span></label>
+        <label id="cutEng" title="по номеру двигателя"><input type="radio" name="sion" value="2"><span>по номеру двигателя</span></label>
+        <label id="cutVin" title="по VIN номеру"><input type="radio" name="sion" value="3"><span>по VIN номеру</span></label>
+        <!--/div-->
+    </section>
+
+    <div class="sModRow">
+        <span class="sModCol1">Марка:</span>
+        <div class="sModCol2"><input type="text" id="sModBrand" readonly></div>
+        <button class="sModCol3" id="sModBrandButton">&#8230</button>
+    </div>
+
+    <section id="sMod">
+        <section class="sModFields">
+            <div class="sModRow">
+                <span class="sModCol1">Модель:</span>
+                <div class="sModCol2"><input type="text" id="sModModel" readonly></div>
+                <button class="sModCol3" id="sModModelButton">&#8230</button>
+            </div>
+            <div class="sModRow">
+                <span class="sModCol1">Комплектация:</span>
+                <div class="sModCol2"><input type="text" id="sModCar" readonly></div>
+                <button class="sModCol3" id="sModCarButton">&#8230</button>
+            </div>
+        </section>
+
+        <section id="sModSectionModel">
+            <p id="sModHeadModel">Выбери модель автомобиля</p>
+            <!--div>
+                <table class="hTable">
+                    <tr>
+                        <th class="m1">A-Z</th>
+                        <th class="m2">Модель</th>
+                        <th class="m3">Период выпуска</th>
+                    </tr>
+                </table>
+            </div-->
+            <div id="sModOverModel" class="overtab">
+                <table  cols="3" id="sModTabModel" class="sTable">
+                    <tr class="htr">
+                        <th class="m1">A-Z</th>
+                        <th class="m2">Модель</th>
+                        <th class="m3">Период выпуска</th>
+                    </tr>
+                    <!--tbody id="sModTabBodyModel">
+
+                    </tbody-->
+                </table>
+            </div>
+        </section>
+        <section id="sModSectionCar" style="overflow: hidden">
+            <p id="sModHeadCar">Выбери комплектацию автомобиля</p>
+            <!--div>
+                <table class="hTable">
+                    <tr>
+                        <th class="c1">Наименование</th>
+                        <th class="c2">Кузов</th>
+                        <th class="c3">Объем</th>
+                        <th class="c4">Горючее</th>
+                        <th class="c5">Период выпуска</th>
+                    </tr>
+                </table>
+            </div-->
+            <div id="sModOverCar" class="overtab">
+                <table cols="5" id="sModTabCar" class="sTable">
+                    <tr class="htr">
+                        <th class="c1">Наименование</th>
+                        <th class="c2">Характеристики</th>
+                        <th class="c3">Период выпуска</th>
+                    </tr>
+                    <!--tbody id="sModTabBodyCar">
+
+                    </tbody-->
+                </table>
+            </div>
+        </section>
+    </section>
+
+    <section id="sEng">
+        <div class="sModRow">
+            <span class="sModCol1">Номер двигателя:</span>
+            <div class="sModCol2"><input type="text" id="sEngCode" readonly></div>
+            <button class="sModCol3" id="sEngButton">&#8230</button>
+        </div>
+        <div class="sModRow">
+            <span class="sModCol1">Комплектация:</span>
+            <div class="sModCol2"><input type="text" id="sEngCar" readonly></div>
+            <button class="sModCol3" id="sEngCarButton">&#8230</button>
+        </div>
+        <section id="sEngSectionEng" style="overflow: hidden">
+            <p id="sEngHeadEng">Выбери двигатель автомобиля</p>
+            <!--div>
+                <table class="hTable">
+                    <tr>
+                        <th class="e1">A-Z</th>
+                        <th class="e2">Номер</th>
+                        <th class="e3">Объем</th>
+                        <th class="e4">Горючее</th>
+                        <th class="e5">Период выпуска</th>
+                    </tr>
+                </table>
+            </div-->
+            <div id="sEngOverEng" class="overtab">
+                <table cols="5" id="sEngTabEng" class="sTable">
+                    <tr class="htr">
+                        <th class="e1">A-Z</th>
+                        <th class="e2">Номер</th>
+                        <th class="e3">Объем</th>
+                        <th class="e4">Горючее</th>
+                        <th class="e5">Период выпуска</th>
+                    </tr>
+                    <!--tbody id="sEngTabBodyEng">
+
+                    </tbody-->
+                </table>
+            </div>
+        </section>
+
+        <section id="sEngSectionCar" style="overflow: hidden">
+            <p id="sEngHeadCar">Выбери комплектацию автомобиля</p>
+            <!--div>
+                <table class="hTable">
+                    <tr>
+                        <th class="c1">Наименование</th>
+                        <th class="c2">Кузов</th>
+                        <th class="c3">Объем</th>
+                        <th class="c4">Горючее</th>
+                        <th class="c5">Период выпуска</th>
+                    </tr>
+                </table>
+            </div-->
+            <div id="sEngOverCar" class="overtab">
+                <table cols="5" id="sEngTabCar" class="sTable">
+                    <tr class="htr">
+                        <th class="c1">Наименование</th>
+                        <th class="c2">Характеристики</th>
+                        <th class="c3">Период выпуска</th>
+                    </tr>
+                    <!--tbody id="sEngTabBodyCar">
+
+                    </tbody-->
+                </table>
+            </div>
+        </section>
+    </section>
+
+    <section id="sVin">
+        <div class="sModRow">
+            <span class="sModCol1">VIN номер:</span>
+            <div class="sModCol2"><input type="text" id="sVinCode"></div>
+            <button class="sModCol3" id="sVinButton">ok</button>
+        </div>
+        <div class="sModRow">
+            <span class="sModCol1">Комплектация:</span>
+            <div class="sModCol2"><input type="text" id="sVinCar" readonly></div>
+            <button class="sModCol3" id="sVinCarButton">&#8230</button>
+        </div>
+        <section id="sVinSectionCar" style="overflow: hidden">
+            <p id="sVinHeadCar">Выбери комплектацию автомобиля</p>
+            <!--div>
+                <table class="hTable">
+                    <tr>
+                        <th class="c1">Наименование</th>
+                        <th class="c2">Кузов</th>
+                        <th class="c3">Объем</th>
+                        <th class="c4">Горючее</th>
+                        <th class="c5">Период выпуска</th>
+                    </tr>
+                </table>
+            </div-->
+            <div id="sVinOverCar" class="overtab">
+                <table cols="5" id="sVinTabCar" class="sTable">
+                    <tr class="htr">
+                        <th class="c1">Наименование</th>
+                        <th class="c2">Характеристики</th>
+                        <th class="c3">Период выпуска</th>
+                    </tr>
+                    <!--tbody id="sVinTabBodyCar">
+
+                    </tbody-->
+                </table>
+            </div>
+        </section>
+    </section>
+    <section id="sModSectionBrand">
+        <p id="sModHeadBrand" style="white-space: nowrap; text-overflow: ellipsis; overflow: hidden">Выбери марку автомобиля</p>
+        <!--div>
+            <table class="hTable" >
+
+            </table>
+        </div-->
+        <div id="sModOverBrand" class="overtab">
+            <table cols="2" id="sModTabBrand" class="sTable">
+                <tr class="htr">
+                    <th class="b1">A-Z</th>
+                    <th class="b2">Марка (производитель)</th>
+                </tr>
+                <!--tbody id="sModTabBodyBrand">
+
+                </tbody-->
+            </table>
+        </div>
+    </section>
+</main>
+<script src="../nsllib.js"></script>
+<script src="autoSelect.js"></script>
+</body>
+</html>

@@ -1,0 +1,166 @@
+@media screen and (min-width: 950px) {
+    :root {
+        --fontBigSize: 18px;
+        --fontSize: 16px;
+        --width: 950px;
+
+    }
+    main {
+        width: 70%;
+        height: 80%;
+        top: 10%;
+        left: 12%;
+    }
+}
+@media screen and (min-width: 620px) and (max-width: 949px){
+    :root {
+        --fontBigSize: 16px;
+        --fontSize: 14px;
+        --width: 620px;
+    }
+    main {
+        width: 80%;
+        height: 80%;
+        top: 10%;
+        left: 7%;
+    }
+}
+@media screen and (max-width: 619px){
+    :root {
+        --fontBigSize: 12px;
+        --fontSize: 11px;
+        --width: 380px;
+    }
+    main {
+        width: 90%;
+        height: 80%;
+        top: 10%;
+        left: 2%;
+    }
+}
+main {
+    font-family: 'Roboto Condensed', sans-serif;
+    font-size: var(--fontSize);
+    /*width: 70%;
+    height: 70%;*/
+    padding: 10px;
+    position: fixed;
+
+    z-index: 9999;
+    border-radius: 10px;
+    border: outset 2px;
+    background-color: #fff;
+    opacity: 1;
+}
+header {
+    margin: -10px -10px 10px -10px;
+    padding-bottom: -10px;height: 25px;
+    background-color: #bbddff;
+    border-top-left-radius: 10px;
+    border-top-right-radius: 10px;
+    cursor: move;
+}
+header>img {
+    margin: 5px; height: 18px; float: left;
+}
+header>button {
+    float: right;
+    color: #373737;
+    font-weight: bold;
+    font-size:  var(--fontSize); /* 18px; */
+    border: none;
+    border-radius: 3px;
+    cursor: pointer;
+}
+header>span {
+    display: inline-block;
+    margin: 5px;
+    font-size:  var(--fontSize); /*12px;*/
+    vertical-align: middle;
+    font-family: verdana, arial sans-serif;
+}
+#cuts {
+    height: 32px;
+    margin-bottom: 10px;
+}
+#cuts>label {
+    display: table-cell;
+    border: outset 3px #ccc;
+    height: 30px;
+    color: #888;
+    background-color: #ddd;
+    vertical-align: middle;
+    text-align: left;
+    padding-left: 5px;
+}
+#cuts>label>input {display: none;}
+#cutMod{/*min-width: 9ch;*/ width: 23%;}
+#cutEng{/*min-widtn: 19ch;*/ width: 44%;}
+#cutVin {/*min-width: 14ch;*/ width: 33%;}
+
+.sModFields{} {
+    display: inline-table;
+}
+.sModRow {
+    display: table-row; margin: 5px;
+}
+.sModCol1 {
+    min-width: 17vw; width: 17vw; display: table-cell;  margin: 5px;
+}
+.sModCol2 {
+    width: 100%; padding-left: 5px;
+    display: table-cell;  margin: 5px;
+}
+.sModCol3 {
+    width: 30px; display: table-cell;  margin: 5px;border: 2px outset;cursor: pointer;
+}
+.sModCol3:disabled {
+    border-style: hidden; cursor: auto;
+}
+.sModRow input {
+    width: 100%;
+}
+.sTable {
+    width: 100%;
+    border: 1px #295f98 solid;
+    border-collapse: collapse;
+}
+.hTable, .htr {
+    width: 100%;
+    border: 1px #295f98 solid;
+    border-collapse: collapse;
+    table-layout: fixed;
+}
+.hTable th, .sTable td, .htr th {
+    border: 1px solid #295f98;
+    padding: 5px;
+    margin: 5px;
+    font-size:  var(--fontSize); /*14px;*/
+    font-weight: 500;
+}
+.overtab {
+    overflow-y: auto;
+    cursor: pointer;
+}
+/*.b1, .m1 {width: 20px;}*/
+.b2, .m2, .c1 {text-align: left}
+.m3 {calc(100% - 19ch)}
+/*.c4, .c5, e5 {min-width: 120px;width: 120px;}*/
+.c1 {calc(50% - 8ch)}
+.c2 {calc(50% - 8ch)}
+/*.c3 {width: 15ch}*/
+/*.c2 {min-width: 150px;width: 150px;}*/
+/*.c3 {min-width: 50px;width: 50px;}*/
+table {white-space: nowrap;/*text-overflow: ellipsis;*/ text-align: center}
+.overtab tr:hover {background-color: #cccccc}
+th {white-space: nowrap; text-overflow: ellipsis; overflow: hidden}
+/*.e1 {width: 10%}
+.e2, .e3 {width: 15%; min-width: 6vw}
+.e4 {width: 20%; min-width: 7vw }
+.e5 {width: 40%}*/
+.b1, .m1, .e1 {width: 3ch;}
+.b2 {calc(100% - 4ch);}
+.e3 {width: 6ch;}
+.e4 {width: 9ch;}
+.m3, .c3, e5 {width: 15ch;}
+.e2 {width: calc(100% - 33ch);}

@@ -1,0 +1,160 @@
+@media screen and (min-width: 950px) {
+    :root {
+        --fontBigSize: 24px;
+        --fontHeadSize: 18px;
+        --fontSize: 16px;
+        --width: 950px;
+        --widthBlock: 950px;
+        --widthButton: 170px;
+        --marginleft: calc(50vw - var(--width) / 2);
+        --marginleft2: calc(var(--marginleft) + 183px);
+    }
+    .mainBlock {
+        margin-left: var(--marginleft);
+    }
+}
+@media screen and (min-width: 620px) and (max-width: 949px){
+    :root {
+        --fontBigSize: 20px;
+        --fontHeadSize: 15px;
+        --fontSize: 14px;
+        --width: 620px;
+        --widthBlock: 100vw;
+        --widthButton: 150px;
+        --marginleft: 0;
+        --marginleft2: 163px;
+    }
+}
+@media screen and (max-width: 619px) {
+    :root {
+        --fontBigSize: 16px;
+        --fontHeadSize: 12px;
+        --fontSize: 11px;
+        --width: 380px;
+        --widthBlock: 100vw;
+        --widthButton: 135px;
+        --marginleft: 0;
+        --marginleft2: 148px;
+    }
+
+    .mainBlock {
+        width: 100%;
+    }
+}
+html, body {
+    font-family: 'Roboto Condensed', sans-serif;
+    margin: 0; padding: 0; width: 99%;
+    color: #000;
+    font-size: 16px;
+}
+body {
+    background-image: url('../images/program165.png'), url('../images/cosmos.jpg');
+    background-size: cover;
+    background-origin: border-box;
+}
+
+.noVisible {
+    display: none;
+}
+.mainBlock {
+    min-height: 100vh;
+    height: 100%;
+    box-sizing: border-box;
+    background-color: rgba(255, 255, 255, 0.8);
+    background-size: 100%;
+    padding: 10px 0px 10px 10px;
+    width: var(--widthBlock);
+}
+
+.mainBlock>h1 {
+    font-size: 18px;
+    text-align: center;
+    padding: 0;
+    margin: 0;
+    padding-bottom: 5px;
+}
+
+#mySoft tr {
+    height: 54px
+}
+#mySoft .c1 {
+    width: var(--widthButton);
+}
+
+#mySoft button {
+    width: var(--widthButton);
+    text-align: left;
+}
+#mySoft img {
+    height: 48px
+}
+#mySoft .name {
+    vertical-align: 18px;
+    font-size: var(--fontHeadSize);
+    font-weight: 600; font-family: 'Roboto Condensed', sans-serif;
+}
+#mySoft .c2 {
+    width: calc(100% - var(--widthButton) - 2px);
+    padding-left: 5px;
+    box-sizing: border-box;
+    font-size: var(--fontHeadSize);
+    font-weight: 600;
+    color: #000088;
+}
+#description {
+    position: fixed;
+    top: 40px;
+    left: var(--marginleft2);
+    width: calc(var(--widthBlock) - var(--widthButton) - 13px);
+    box-sizing: border-box;
+    font-size: var(--fontSize);
+}
+.headSoft {
+    height: 24px;
+    width: 100%;
+    background-color: #bbddff;
+    border-top-left-radius: 4px;
+    border-top-right-radius: 4px;
+    padding-left: 10px; /*2px 0 0 5px;*/
+    box-sizing: border-box;
+    font-size: 18px;
+}
+#headSoftTxt {
+    color: #ff0000;
+    vertical-align: 10px;
+    font-weight: 600;
+    /*width: calc(100% - 44px);*/
+    display: inline-block;
+    height: 100%;
+
+}
+#headSoftClose, #headSoftHide {
+    display: inline-block;
+    float: right;
+    background-color: #000088;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+    height: 100%; /*24px;*/
+    width: 24px;
+    box-sizing: border-box;
+    margin: 0;
+}
+.softHelp {
+    width: 100%;
+    height: calc(100vh - 60px);
+
+    overflow: auto;
+    padding: 10px;
+    box-sizing: border-box;
+    background-color: #ffffff;
+}
+.imgKKM {
+    display: inline-block;
+    max-width: 50%;
+    max-height: calc(100vh - 150px);
+    vertical-align:top;
+    float: left;
+    padding-right: 10px
+}

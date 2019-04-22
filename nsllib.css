@@ -1,0 +1,58 @@
+/* --- All --- */
+.selectNone {
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+}
+/* --- TabBar --- */
+.TabBar {
+    display: inline-block;
+    list-style-type: none;
+    padding-left: 0;
+    margin: 0;
+    color: #000;
+    font-size: 16px;
+}
+.TabBar>li {
+    padding: 5px 10px;
+    margin-right: 2px;
+    border-color: #eee;
+}
+
+.TabBar>li>img {
+    padding: 0 5px;
+    vertical-align: middle;
+    height: 18px;
+}
+
+.tab-active {
+    border-style: inset;
+    display: inline-block;
+    cursor: pointer;
+    background-color: #eee;
+}
+
+.tab-inactive {
+    border-style: outset;
+    display: inline-block;
+    cursor: pointer;
+    background-color: #ddd;
+}
+.tab-inactive:focus {
+    text-decoration: solid underline;
+}
+.tab-inactive:hover {
+    background-color: #eee;
+}
+.tab-disable {
+    border-style: ridge;
+    display: inline-block;
+    cursor: default;
+    background-color: #ddd;
+    color: #888;
+}
+
+.tab-invisible {
+    display: none;
+}
+

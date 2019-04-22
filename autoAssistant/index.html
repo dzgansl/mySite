@@ -1,0 +1,223 @@
+<!doctype html>
+<html>
+<head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="icon" sizes="128x128" href="../images/nsl4-128.png">
+    <link rel="stylesheet" type="text/css" href="../reset.css">
+    <link rel="stylesheet" type="text/css" href="autoAssistant.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Roboto+Condensed:r,b&amp;subset=cyrillic">
+    <title>Помощник автобизнеса онлайн</title>
+ </head>
+
+<body>
+    <!--div id="debug"></div-->
+    <div class="mainBlock">
+        <!-- Заголовок и Вкладки -->
+        <section class="cuts selectNone">
+            <!--img src="../images/nsl4-128.png"-->
+            <span>Поиск автозапчастей:&nbsp</span>
+            <label id="sNumbCut" title="по номеру" class="cutCurrent">
+                <input class="noVisible" type="radio" name="shorcut" value="1" checked>
+                <img src="image/searchNumber24.png"><span>по номеру</span>
+            </label>
+            <label id="sAutoCut" title="для автомобиля">
+                <input class="noVisible" type="radio" name="shorcut" value="2">
+                <img src="image/searchAuto-24.png"><span>для автомобиля</span>
+            </label>
+            <!--label id="sSuppCut" title="у поставщиков"><input type="radio" name="shorcut" value="3"><img src="image/search-suplier-24.png"><span>у поставщиков</span></label>
+            <label id="pListCut" title="в корзине"><input type="radio" name="shorcut" value="4"><img src="image/bascet-24.png"><span>в корзине</span></label-->
+        </section>
+
+        <!-- Вкладка - поиск по номеру -->
+        <section class="sNumbSec" id="sNumbSec">
+
+            <!-- Форма ввода поисковых реквизитов -->
+            <form class="sNumbForm selectNone" id="sNumbForm">
+                <span>Поиск по</span>
+                <label class="cutCurrent"><input class="noVisible" type="radio" name="is1" value="1" checked><span>артикулу</span></label>
+                <label><input class="noVisible" type="radio" name="is1" value="5"><span>штрих-коду</span></label>
+                <input name="sNumb" id="sNumb" type="text" maxlength="15" placeholder="поисковый номер" autofocus>
+                <button><img src="image/lupa-24.png"><span>найти</span></button>
+            </form>
+
+            <!-- Заголовок таблицы результата -->
+            <div id="sNumbDivHead">
+                <table class="sNumbTabHead" id="sNumbTabHead">
+                    <tr class="selectNone">
+                        <th class="c1 ch">Производитель</th>
+                        <th class="c2 ch">Артикул</th>
+                        <th class="c3 ch">Наименование запчасти</th>
+                        <th class="c4 ch">Фото</th>
+                        <!--th class="c5 ch">Ориг</th-->
+                    </tr>
+                </table>
+            </div>
+
+            <!-- Таблица результата -->
+            <div id="sNumbOver">
+                <table class="sNumbTab" id="sNumbTab" cols="4" sortable>
+                    <tbody id="sNumbBody" >
+
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <!-- Вкладка: поиск по модели автомобиля -->
+        <section class="sAutoSec" id="sAutoSec">
+
+            <!-- Блок выбора и отображения модели автомобиля -->
+            <div id="sAutoAuto" class="selectNone">
+                <span>Автомобиль:</span>
+                <input type="text" value="любой" id="sAutoCar" readonly>
+                <button type="button" id="autoClear" title="очистить">&times</button>
+                <button type="button" id="autoSelect"><img src="image/searchAuto-24.png"></button>
+            </div>
+
+            <!-- Результаты поиска по автомобилю -->
+            <div id="sAutoData">
+
+                <!-- Блок: дерево узлов автомобиля -->
+                <div id="sAutoTree">
+                    <div id="tree">
+
+                    </div>
+                </div>
+
+                <!-- Вертикальнй разделитель блоков - для изменения их размеров -->
+                <div id="sAutoResize"></div>
+
+                <!-- Блок Данные о продукции узла -->
+                <div id="sAutoProd" data-id=0 data-count=0 data-limit=0 data-limitnew=0 data-countlist=0 data-curlist=0>
+
+                    <!-- Список продукции узла -->
+                    <div class="selectNone">
+
+                        <!--  Заголовок таблицы -->
+                        <div class="tpHeader">
+                            <div class="tpName">Продукция:</div>
+                            <div class="tpName">Монтаж:</div>
+                            <div class="tpName">Назначение:</div>
+                        </div>
+
+                        <div class="tdProduct">
+                            <div class="tpValue" id="tpDescription"></div>
+                            <div class="tpValue" id="tpAssembly"></div>
+                            <div class="tpValue" id="tpUsage"></div>
+                        </div>
+                    </div>
+
+                    <form id="tpFormList">
+                        лист
+                        <button type="button" id="tpUpList"><span>&#9664;</span></button>
+                        <input type="text" id="tpCurList" value=0>
+                        <button type="button" id="tpDownList"><span>&#9654;</span></button>
+                        из
+                        <input type="text" readonly value=0 id="tpCountList">
+                    </form>
+                    <!--/div-->
+                    <!-- Таблица запчастей выбранной продукции -->
+                    <div id="sAutoProdDiv">
+                        <table id="sAutoProdTab">
+                            <tr class="selectNone">
+                                <th class="th1">Производитель</th>
+                                <th class="th2">Артикул</th>
+                                <th class="th3">Фото</th>
+                            </tr>
+                            <tbody id="sAutoProdData">
+
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </div>
+
+        </section>
+
+          <!-- Карточка запчасти  -->
+        <section id="aCard" class = "aCard noVisible">
+            <header class="headCard selectNone">
+                <img src="image/settings_48.png">
+                <button  class="headExit" type="button">&times;</button>
+                <button  class="headHide" type="button">_</button>
+                <span>Карточка запчасти</span>
+            </header>
+            <main class="aCardMain">
+                <section class="cuts selectNone">
+                    <label class="cutinfo cutsCurrent"><input class="noVisible" type="radio" name="sion" value="1" checked><span>Свойства</span></label>
+                    <label class="cutfoto"><input class="noVisible" type="radio" name="sion" value="2"><span>Фото</span></label>
+                    <label class="cutanal"><input class="noVisible" type="radio" name="sion" value="3"><span>Аналоги</span></label>
+                    <label class="cutauto"><input class="noVisible" type="radio" name="sion" value="4"><span>Применяемость</span></label>
+                </section>
+
+                <section class="info" style="width: 100%; overflow: auto;">
+                    <table>
+                        <tbody>
+                        </tbody>
+                    </table>
+                </section>
+
+                <section class="foto" style="width: 100%;height: 100%">
+                    <div>
+                        <button  type="button" class="ico cutCurrent"><img src="about:blank"></button>
+
+                    </div>
+                    <img src='about:blank'>
+                </section>
+
+                <section class="anal" style="width: 100%;height: 100%"
+                    data-id=0 data-count=0 data-limit=0 data-limitnew=0 data-countlist=0  data-curlist=0>
+                    <form class="formList selectNone">
+                        Лист <button type="button" class="upList" style="cursor: pointer; height: 20px; width: 25px; padding-bottom: 20px;">&#9664;</button>
+                        <input type="text"  class="curList" style="border: inset 2px #cccccc; width: 5ch;text-align: center;" value=1>
+                        <button type="button" class="downList" style="cursor: pointer; height: 20px; width: 25px;  padding-bottom: 20px;">&#9654;
+                        </button> из <span></span>
+                    </form>
+                    <table style="width: 100%;">
+                        <thead>
+                            <tr class="selectNone">
+                                <th style="width: 44%">Производитель</th>
+                                <th style="width: 44%">Артикул</th>
+                                <th style="width: 12%">Фото</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+                </section>
+
+                <section class="auto" data-id=0 data-count=0 data-limit=0 data-limitnew=0 data-countlist=0  data-curlist=0>
+                    <form class="formList selectNone">
+                        Лист <button type="button" class="upList" style="cursor: pointer; height: 20px; width: 25px; padding-bottom: 20px;">&#9664;</button>
+                        <input type="text"  class="curList" style="border: inset 2px #cccccc; width: 5ch;text-align: center;" value=1>
+                        <button type="button" class="downList" style="cursor: pointer; height: 20px; width: 25px;  padding-bottom: 20px;">&#9654;
+                        </button> из <span></span>
+                    </form>
+                    <table style="width: 100%;">
+                        <tr class="selectNone">
+                            <th style="width: 50%">Модель, комплектация</th>
+                            <th style="width: 25%">период выпуска</th>
+                            <th style="width: 10%">куб.см</th>
+                            <th style="width: 15%">кузов</th>
+                        </tr>
+                        <tbody>
+
+                        </tbody>
+                    </table>
+
+                </section>
+            </main>
+        </section>
+        <!--iframe id="autoCard" src="autoCard.html" data-id=0 data-cut=0></iframe-->
+        <script src="../nsllib.js"></script>
+        <script src="autoAssistant.js"></script>
+    </div>
+    <!--div style="display: inline-block; width: calc(100vw - 960px);
+    background-image: url('image/DSC100561204.jpg'), url('image/porsche-cars-porsche-cayman-detailed.jpg'); background-size: 100%;">
+        <img src="image/DSC100561204.jpg" style="width: 100%; vertical-align: 80vh">
+    </div-->
+</body>
+</html>
