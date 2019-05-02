@@ -43,9 +43,8 @@ const emailBlock    = document.getElementById('emailBlock');
 const identCome     = document.getElementById('identCome');
 const identExit     = document.getElementById('identExit');
 /*     Константы настроек  */
-const settingsBlock = document.getElementById('settingsBlock');
-const trashClear    = document.getElementById('trashClear');
-const settingsClearSwith = document.getElementById('settingsClearSwith');
+
+
 const setVideoDevice= document.getElementById('setVideoDevice');// checked:
 
 const videoinput  = document.getElementById('videoinput');
@@ -127,22 +126,10 @@ if (settingsJson) {
 var pos = settings.videoFormat.indexOf('x');
 settings.videoWidth = settings.videoFormat.substr(0,pos) - 0; //Разрешение - ширина
 settings.videoHeight = settings.videoFormat.substr(pos+1) - 0;  //Разрешение - высота
-var elem=document.getElementById('resolution').querySelector('input[value="'+settings.videoFormat+'"]');
-if (elem) elem.checked=true;
-document.getElementById('autoGainControl').checked = settings.autoGainControl;
-document.getElementById('echoCancellation').checked = settings.echoCancellation;
-document.getElementById('noiseSuppression').checked = settings.noiseSuppression;
-document.getElementById('saveSettingsSwith').checked = settings.save;
-document.getElementById('setVideoDevice').checked = settings.queryVideoDevice;
-document.getElementById('freeDevices').checked = settings.freeDevices;
+
 
 idUser = getPropertyFromCookie('idUser');   // Чтение в куках кода пользователя
-// Сохранение настройки
-function changeSettings(name, value) {
-    settingsSave[name] = value;
-    settings[name] = value;
-    settingsChange = true;
-}
+
 
 var waitSend =[];               //массив отложенных запросов
 if (idUser !== undefined) {
@@ -152,12 +139,12 @@ if (idUser !== undefined) {
     if (socketOpen) wsSend({action: 'hello', idUser: idUser, login: user.login});
     // если webSocket еще не открыт - записываем запрос в массив отложенных запросов
     else waitSend.push({action: 'hello', idUser: idUser, login: user.login});
-    modal.style.display = 'none';
-    hello.style.display = 'none';
+    modal.hidden = true;
+    hello.hidden = true;
     settings.trash = true;
 } else {
-    modal.style.display = 'block';
-    hello.style.display = 'block';
+    modal.hidden = false;
+    hello.hidden = false;
 }
 
 // Проверяем возможность общения через медио-устройства
@@ -205,7 +192,7 @@ function wsConnect() {
             else if (q.load == 'newUser') loadNewUser(q);       // Загрузить новый контакт (добавить контакт)
             else if (q.load == 'userDialogs') loadUserDialogs(q);  // Показать диалоги с пользователем
             else if (q.load == 'dialog') loadDialog(q);         // Показать содержимое диалога с пользователем
-            else if (q.load == 'foto') loadFoto(q);             // Показать загруженные фотографии пользователя
+            else if (q.load == 'foto') fotoBlock.loadFoto(q);             // Показать загруженные фотографии пользователя
             else {
                 var err='не найден обработчик для запроса load: ' + q.load;
                 console.log(err);
@@ -237,10 +224,13 @@ function wsConnect() {
             else if (q.command === "Подключение") commandConnection(q);
             else if (q.command === "Предложение") commandOffer(q);
             else if (q.command === "Предложение2") command2Offer(q);
-            else if (q.command === "ПредложениеSend") sendCommandOffer(q);
+            else if (q.command === "ПредложениеSend") {
+                if (!exchange) exchange = new Exchange();
+                exchange.commandOffer(q);
+            }
             else if (q.command === "Ответ") commandAnswer(q);
             else if (q.command === "Ответ2") command2Answer(q);
-            else if (q.command === "ОтветSend") sendCommandAnswer(q);
+            else if (q.command === "ОтветSend") exchange.commandAnswer(q);
             else if (q.command === "Занято") {
                 bell.src='busy.mp3';
                 bell.play(0);
@@ -251,7 +241,7 @@ function wsConnect() {
             }
             else if (q.command === "Сброс") endCall();
             else if (q.command === "Сброс2") screenDemoEnd();
-            else if (q.command === "СбросОбмен") exchangeClose();
+            else if (q.command === "СбросОбмен") exchange.close();
             else if (q.command === "Устройство") medioDeviceEx(q);
 
         } else if ('candidate' in q) {
@@ -261,8 +251,9 @@ function wsConnect() {
             console.log("Получил ICECandidate-2 от удаленного партнера.");
             pcIn.addIceCandidate(new RTCIceCandidate(q.candidate2));
         } else if ('candidateSend' in q) {
-            console.log("Получил ICECandidate-Send от удаленного партнера.");
-            sendPC.addIceCandidate(new RTCIceCandidate(q.candidateSend));
+            exchange.candidateSend(q)
+            //console.log("Получил ICECandidate-Send от удаленного партнера.");
+            //sendPC.addIceCandidate(new RTCIceCandidate(q.candidateSend));
         /*} else if ('sdp' in q) {
             console.log("Получил SDP от удаленного партнера.");
             peerConn.setRemoteDescription(new RTCSessionDescription(q.sdp));
@@ -291,10 +282,10 @@ function wsSend(obj) {
 registration.oninput = function (e) {
     if (registration.checked) {
         restore.disabled = true;
-        emailBlock.style.display='block';
+        emailBlock.hidden = false;
     } else {
         restore.disabled = false;
-        emailBlock.style.display='none';
+        emailBlock.hidden = true;
     }
     return false;
 };
@@ -302,11 +293,11 @@ registration.oninput = function (e) {
 restore.oninput = function (e) {
     if (restore.checked) {
         registration.disabled = true;
-        emailBlock.style.display='block';
+        emailBlock.hidden = false;
         identCome.textContent = "Восстановить";
     } else {
         registration.disabled = false;
-        emailBlock.style.display='none';
+        emailBlock.hidden = true;
         identCome.textContent = "ВОЙТИ";
     }
     return false;
@@ -332,27 +323,31 @@ function processReply (q) {
     if (q.reply==='registration') processHello(q);
     else if (q.reply==='hello')   processHello(q);
     else if (q.reply==='restore') processRestore(q);
-    else if (q.reply==='updateUser') processUpdateUser(q);
-    else if (q.reply==='updateIdent') processUpdateIdent(q);
-    else if (q.reply==='updateFoto') processUpdateFoto(q);
-    else if (q.reply==='file') processFile(q); // Передача файла
-    else if (q.reply==='deleteFile') processDeleteFile(q);
-    else if (q.reply==='findUsers') processFindUsers(q);
+    else if (q.reply==='updateUser') personBlock.processUpdateUser(q);
+    else if (q.reply==='updateIdent') identBlock.processUpdateIdent(q);
+    else if (q.reply==='updateFoto') fotoBlock.processUpdateFoto(q);
+    else if (q.reply==='trimFoto') fotoBlock.processTrimFoto(q);
+    else if (q.reply==='file') {    // Передача файла
+        if (!fotoBlock) fotoBlock = new FotoBlock();
+        fotoBlock.processFile(q);
+    }
+    else if (q.reply==='deleteFile') fotoBlock.processDeleteFile(q);
+    else if (q.reply==='findUsers') findContact.processFindUsers(q);
 }
 // обработка данных ответа сервера авторизации
 function processHello(q) {
     if (q.result !== true) {
         console.log('Ошибка при выполнении запроса ' + q.reply + ': ' + q.comment);
-        if (hello.style.display === 'none') {
-            modal.style.display = 'block';
-            hello.style.display = 'block';
+        if (hello.hidden) {
+            modal.hidden = false;
+            hello.hidden = false;
         }
         showMessage(q.comment, 'Ошибка в данных приветствия');
         return false;
     }
-    if (hello.style.display === 'block') {// скрытие формы авторизации
-        modal.style.display = 'none';
-        hello.style.display = 'none';
+    if (!hello.hidden) {// скрытие формы авторизации
+        modal.hidden = true;
+        hello.hidden = true;
     }
     if (!savepass.checked && q.user.idUser && q.user.login) {        // сохраниение данных пользователя в куках
         setPropertyToCookie('login', q.user.login, {expires: 10000000});
@@ -448,6 +443,8 @@ function loadNewUser(q) {
         '</span>' + users[i].fullName + '</td>\n' +
         '</tr>\n';
     contactsTbody.insertAdjacentHTML('beforeend',text);
+
+    signal("image/newContact.mp3");
     messageVisible('Добавлен новый контакт: '+users[i].fullName);
 }
 
@@ -495,7 +492,7 @@ function loadUserDialogs(q) {
     var panelUl = newPanel.querySelector('ul');
     panelUl.innerHTML = text;
     userPanels.appendChild(newPanel);
-    newPanel.style.display=panelVisible ? 'block' : 'none';
+    newPanel.hidden = !panelVisible;
     f_user.loaded = true;
     f_user.panel = newPanel;
     f_user.message = newPanel.querySelector('textarea');
@@ -637,12 +634,12 @@ function goContact(idxUser) {
         // Восстановить фон контакта
         contactsTbody.children[curUserIdx].style.backgroundColor = (curUser.countNewMessage === 0 ? '#eeeeee' : '#ffe0e0');
         // Спрятать панель диалогов
-        if ('panel' in curUser && panelVisible) curUser.panel.style.display = 'none';
+        if ('panel' in curUser && panelVisible) curUser.panel.hidden = true;
     }
     curUserIdx = idxUser;
     curUser = users[idxUser];
     contactsTbody.children[curUserIdx].style.backgroundColor = 'paleturquoise';
-    if ('panel' in curUser && panelVisible) curUser.panel.style.display = 'block';
+    if ('panel' in curUser && panelVisible) curUser.panel.hidden = false;
     //if (talkState === 'none') {
         buttonVideoFone(curUser.online);
     //}
@@ -880,11 +877,13 @@ function userOnline(q)/* idUser, value: true||false */  {
         if (users[i].idUser == q.idUser ) {
             users[i].online = q.value;
             if (q.value){
+                signal();
                 contactsTbody.children[i].querySelector('span').style.color = '#087b52';
                 //if (talkState === 'none') {
                 buttonVideoFone(true);
                 //}
             } else {
+                signal("image/exit.mp3");
                 contactsTbody.children[i].querySelector('span').style.color = '#ff0000';
                 //if (talkState === 'none') {
                 buttonVideoFone(false);
@@ -929,17 +928,17 @@ function resize() {
     // Определим отношения
     var h = userPanels.clientHeight;
     //document.body.clientHeight - headDialogs.offsetHeight - 4;parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hFooter'));
-    if (videoBlock.style.display=='block') {
+    if (!videoBlock.hidden) {
         // Если отображение экрана - убрать панель и левый блок
-        if (screenBlock.style.display == 'block') {
+        if (!screenBlock.hidden) {
             var sc = true;
             if (panelVisible) dialogVisible(false);
             if (leftBlockVisible) leftBlockSwith(false);
         } else sc = false;
         // Расчитываем размеры
-        var hwYa = (localVideo.style.display == 'none') ? localFoto.scrollHeight / localFoto.scrollWidth :
+        var hwYa = localVideo.hidden ? localFoto.scrollHeight / localFoto.scrollWidth :
             (localVideo.scrollHeight / localVideo.scrollWidth);
-        var hwHe = (talkUsers[0].video.style.display == 'none') ?
+        var hwHe = talkUsers[0].video.hidden ?
             talkUsers[0].fotoBlock.scrollHeight / talkUsers[0].fotoBlock.scrollWidth :
             (talkUsers[0].video.scrollHeight / talkUsers[0].video.scrollWidth);
         var w = document.body.clientWidth;
@@ -981,8 +980,15 @@ function resize() {
         hP = h;
     }
     document.documentElement.style.setProperty('--hPanel', hP + 'px');
+    if (curUser)
     curUser.panel.querySelector('.dialogs').style.height = (hP -
         curUser.panel.querySelector('.textareaBlock').offsetHeight - 24) + 'px';
+
+    var visualBlock = null;
+    if (!hello.hidden) visualBlock = hello;
+    else if(!document.getElementById('exchangeBlock').hidden) visualBlock = document.getElementById('exchangeBlock');
+    else if(!document.getElementById('settingsBlock').hidden) visualBlock = document.getElementById('settingsBlock');
+    if (visualBlock && visualBlock.offsetTop < 0) visualBlock.style.top = 0;
 }
 
 //*************     Видео-блок     *****************
@@ -994,8 +1000,8 @@ function mediaDeviceDefine(e) {
     if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
         console.log("enumerateDevices() not supported.");
         isMediaDevice = {audio: false, video: false};
-        dialogsFone.style.display = 'none';
-        dialogsVideo.style.display = 'none';
+        dialogsFone.hidden = true;
+        dialogsVideo.hidden = true;
         if (setup) mediaDevice={audio:false, video: false};
     } else {
         removeChildren(videoinput);
@@ -1028,12 +1034,12 @@ function mediaDeviceDefine(e) {
                 if (videoIn >0) settings.videoId = videoinput.value;
                 if (audioIn === 0) {
                     //Общение не возможно
-                    dialogsFone.style.display = 'none';
-                    dialogsVideo.style.display = 'none';
+                    dialogsFone.hidden = true;
+                    dialogsVideo.hidden = true;
                     isMediaDevice = {audio: false, video: false};
                     if (setup) mediaDevice={audio:false, video: false};
                 } else if (videoIn === 0) {
-                    dialogsVideo.style.display = 'none';
+                    dialogsVideo.hidden = true;
                     isMediaDevice = {audio: true, video: false};
                     if (setup) mediaDevice={audio:true, video: false};
                 } else {
@@ -1044,8 +1050,8 @@ function mediaDeviceDefine(e) {
             .catch(function (err) {
                 console.log(err.name + ": " + err.message);
                 isMediaDevice = {audio: false, video: false};
-                dialogsFone.style.display = 'none';
-                dialogsVideo.style.display = 'none';
+                dialogsFone.hidden = true;
+                dialogsVideo.hidden = true;
                 if (setup) mediaDevice={audio:false, video: false};
             });
     }
@@ -1136,8 +1142,8 @@ function toCall(isVideo) {
     // формируем список абонентов для беседы
     prepareTalk('image/bellEcho.mp3',0.33);   // подготовляваемся у беседе
     talkState = 'connect';                              // переходим в режим соединения
-    dialogsVideo.style.display = 'none';
-    dialogsFone.style.display = 'none';
+    dialogsVideo.hidden = true;
+    dialogsFone.hidden = true;
     dialogsVideoSwitch.style.display = 'inline-block';
     dialogsFoneSwitch.style.display = 'inline-block';
 }
@@ -1168,38 +1174,38 @@ function prepareTalk(ringtone, volume) {
         talkUsers[i].videoBlock.querySelector('.videoHeadTxt').textContent = talkUsers[i].fullName;
         talkUsers[i].fotoBlock = talkUsers[i].videoBlock.children[1];
         talkUsers[i].fotoBlock.src = talkUsers[i].foto;
-        talkUsers[i].fotoBlock.style.display = 'block';
+        talkUsers[i].fotoBlock.hidden = false;
         talkUsers[i].video = talkUsers[i].videoBlock.children[2];
-        talkUsers[i].video.style.display = 'none';
+        talkUsers[i].video.hidden = true;
         //talkUsers[i].video.src = '';
         //videoBlock.appendChild(talkUsers[i].videoBlock);
         videoBlock.insertBefore(talkUsers[i].videoBlock,localVideoBlock);
     }
     // и мое окно видео или фото
     if (mediaDevice.video == false) {
-        localVideo.style.display = 'none';
-        localFoto.style.display = 'block';
+        localVideo.hidden = true;
+        localFoto.hidden = false;
         localVideoBlock.children[0].querySelector('.imgVideo').src='image/eyeClose.png';
         dialogsVideoSwitch.children[0].src='image/cameraOff.png';
     } else {
         if (localVideo.srcObject){
             if (localVideo.srcObject.active) {
-                localVideo.style.display = 'block';
-                localFoto.style.display = 'none';
+                localVideo.hidden = false;
+                localFoto.hidden = true;
             } else {
-                localVideo.style.display = 'none';
-                localFoto.style.display = 'block';
+                localVideo.hidden = true;
+                localFoto.hidden = false;
             }
         } else if (localVideoStream) {
-            localVideo.style.display = 'block';
-            localFoto.style.display = 'none';
+            localVideo.hidden = false;
+            localFoto.hidden = true;
             localVideo.srcObject = localVideoStream;
         } else {
-            localVideo.style.display = 'none';
-            localFoto.style.display = 'block';
+            localVideo.hidden = true;
+            localFoto.hidden = false;
         }
     }
-    videoBlock.style.display='block';
+    videoBlock.hidden = false;
     dialogHideShow.style.display='inline-block';
     resize();
     //сверху колеблется звонок
@@ -1236,8 +1242,8 @@ function answerCall(isVideo) {
     }
     // Если нажата видео: отключаем фото, включаем видео:
     if (mediaDevice.video != false && localVideoStream) {
-        localFoto.style.display = 'none';
-        localVideo.style.display = 'block';
+        localFoto.hidden = true;
+        localVideo.hidden = false;
         localVideo.srcObject = localVideoStream;
     } else {
         dialogsVideoSwitch.querySelector('img').src='image/cameraOff.png';
@@ -1273,13 +1279,13 @@ dialogsVideoSwitch.onclick = function() {
         if (mtrack[0].enabled) {
             dialogsVideoSwitch.querySelector('img').src = 'image/cameraOff.png';
             localVideoBlock.children[0].querySelector('.imgVideo').src = 'image/eyeClose.png';
-            localVideo.style.display='none';
-            localFoto.style.display='block';
+            localVideo.hidden = true;
+            localFoto.hidden = false;
             wsSend({idUser: talkIdUser, command: 'Устройство', video: false});
         } else {
             dialogsVideoSwitch.querySelector('img').src = 'image/cameraOn.png';
-            localFoto.style.display='none';
-            localVideo.style.display='block';
+            localFoto.hidden = true;
+            localVideo.hidden = false;
             wsSend({idUser: talkIdUser, command: 'Устройство', video: true});
             localVideoBlock.children[0].querySelector('.imgVideo').src = 'image/eyeOpen.png';
         }
@@ -1333,9 +1339,9 @@ function onAddStreamHandler(evt) {
     console.log('onAddStreamHandler: пришел поток от собеседника - отображаем в окне');
     // Если есть видео: Убираем фото
     if (talkMediaDevice.video) {
-        talkUsers[0].fotoBlock.style.display = 'none';
+        talkUsers[0].fotoBlock.hidden = true;
         // установить удаленный видеопоток в качестве источника для удаленного элемента HTML5 видео
-        talkUsers[0].video.style.display = "block";
+        talkUsers[0].video.hidden = false;
     } else {
         // видео нет - закрываем глазки
         talkUsers[0].videoBlock.querySelector('.imgVideo').src='image/eyeClose.png';
@@ -1344,8 +1350,8 @@ function onAddStreamHandler(evt) {
     talkUsers[0].video.srcObject = evt.streams[0];
     talkUsers[0].video.volume = 1;
     talkState = 'active';
-    dialogsVideo.style.display = 'none';
-    dialogsFone.style.display = 'none';
+    dialogsVideo.hidden = true;
+    dialogsFone.hidden = true;
     dialogsVideoSwitch.style.display = 'inline-block';
     dialogsFoneSwitch.style.display = 'inline-block';
     if ('getDisplayMedia' in navigator.mediaDevices) {
@@ -1415,10 +1421,10 @@ function endCall() {
         if (bellImage) bellImage.remove();
     }
     // убираются окна, регистрируется отказ
-    videoBlock.style.display = 'none';
+    videoBlock.hidden = true;
     for (var i=0; i < talkUsers.length; i++) talkUsers[i].videoBlock.remove();
-    localVideo.style.display = 'none';
-    localFoto.style.display = 'none';
+    localVideo.hidden = true;
+    localFoto.hidden = true;
     // спрятать кнопку положить трубку
     dialogsClose.style.display = 'none';
 
@@ -1480,13 +1486,13 @@ function medioDeviceEx(q) {
             var cur = talkUsers[i];
             if ('video' in q) {
                 if (q.video) {
-                    cur.fotoBlock.style.display='none';
-                    cur.video.style.display='block';
+                    cur.fotoBlock.hidden = true;
+                    cur.video.hidden = false;
                     cur.videoBlock.children[0].querySelector('.imgVideo').src='image/eyeOpen.png';
 
                 } else {
-                    cur.video.style.display='none';
-                    cur.fotoBlock.style.display='block';
+                    cur.video.hidden = true;
+                    cur.fotoBlock.hidden = false;
                     cur.videoBlock.children[0].querySelector('.imgVideo').src='image/eyeClose.png';
                 }
             }
@@ -1521,7 +1527,7 @@ function screenDemoEnd() {
     console.log('Порлучена команда Сброс 2');
 
     screen.srcObject = null;
-    screenBlock.style.display='none';
+    screenBlock.hidden = true;
     resize();
     try {
         pcIn=close();
@@ -1579,7 +1585,7 @@ function command2Offer(q) {
     pcIn.onicecandidate = onIceCandidate;
     pcIn.ontrack = function (evt) {
         screen.srcObject = evt.streams[0];
-        screenBlock.style.display = 'block';
+        screenBlock.hidden = false;
         dialogHideShow.style.display = 'inline-block';
         resize();
         screen.play();
@@ -1644,11 +1650,11 @@ function dialogVisible(e) {
     else if (e) set =  !panelVisible;
     else set = panelVisible;
     if (set) {
-        curUser.panel.style.display='block';
+        curUser.panel.hidden = false;
         img.src="image/dialogHide.png"
         panelVisible=true;
     } else {
-        curUser.panel.style.display='none';
+        curUser.panel.hidden = true;
         img.src="image/dialogShow.png"
         panelVisible=false;
     }
@@ -1695,484 +1701,6 @@ function onResolution(ev) {
     return false;
 }
 
-/*******************               Переслать файлы            **********************/
-const exchangeKey = document.getElementById('exchangeKey');
-const exchangeBlock = document.getElementById('exchangeBlock');
-const countUpload = document.getElementById('countUpload');
-const countDownload = document.getElementById('countDownload');
-const countMessage = document.getElementById('countMessage');
-const sendListFile = document.getElementById('sendListFile');
-const labelFile = document.getElementById('labelFile');
-const sendFileInput = document.getElementById('sendFileInput');
-const countSendFiles = document.getElementById('countSendFiles');
-const appendElement = document.getElementById('appendElement');
-const receiveCut = document.getElementById('receiveCut');
-const receiveListFile = document.getElementById('receiveListFile');
-const countReceiveFiles = document.getElementById('countReceiveFiles');
-const messengerList     = document.getElementById('messengerList');
-const myMessage     = document.getElementById('myMessage');
-
-var sendIdUser = null;      // Пользователь по обмену данными
-var sendUser = null;        //
-var sendPC = null;          // Peer для передачи данных
-var sendChannel = null;     // Канал передачи данных
-var sendFile = null;        // Передаваемый файл {name, size, offset}
-var sendFilesAll = null;     // При передаче всех файлов - текущий номер в списке
-var receiveFile = null;     // Принимаемый файл {name, size, offset}
-var sizeSendBlock = 16384;  //131072; // Размер блока передаваемых данных
-var receiveElement = null;
-
-// Отобразить форму пересылки файлов
-exchangeKey.onclick = function () {
-
-    if (sendIdUser && sendPC) {
-        modalShow(exchangeBlock);
-        return;
-    }else if (sendUser && talkIdUser && sendUser.idUser == talkIdUser) {
-        sendIdUser = talkIdUser;
-    }else if (sendUser && sendUser.idUser == curUser.idUser) {
-        sendIdUser = curUser.idUser;
-    } else {
-        if (talkIdUser) {
-            sendIdUser = talkIdUser;
-            sendUser = talkUsers[0];
-        } else {
-            sendIdUser = curUser.idUser;
-            sendUser = curUser;
-        }
-        exchangeBlock.firstElementChild.querySelector('div').textContent = sendUser.fullName +' - обмен данными';
-        var l=sendListFile.children.length-1;
-        for (var i=l; l>0; l--) {
-            sendListFile.children[i].remove();
-        }
-
-        var l=receiveListFile.children.length-1;
-        for (var i=l; l>0; l--) {
-            receiveListFile.children[i].remove();
-        }
-
-    }
-    createSendPC();
-};
-document.getElementById('exchangeHide').onclick = function() {
-    modalClean(exchangeBlock);
-}
-document.getElementById('exchangeExit').onclick = function (ev) {
-    wsSend({idUser: sendIdUser, command: 'СбросОбмен'}) ;
-    exchangeClose();
-}
-
-// Управление вкладками
-document.getElementById('sendFileCut').onclick = function (ev) {
-    if (document.getElementById('sendFileCut').style.borderStyle !== 'inset') {
-        document.getElementById('sendFileCut').style.borderStyle = 'inset';
-        document.getElementById('receiveFileCut').style.borderStyle = 'outset';
-        document.getElementById('receiveCut').style.display = 'none';
-        document.getElementById('messengerCut').style.borderStyle = 'outset';
-        document.getElementById('messengerSec').style.display = 'none';
-        document.getElementById('sendCut').style.display = 'block';
-    }
-}
-
-document.getElementById('receiveFileCut').onclick = receiveCutOnline;
-function receiveCutOnline() {
-    if (document.getElementById('receiveFileCut').style.borderStyle !== 'inset') {
-        document.getElementById('receiveFileCut').style.borderStyle = 'inset';
-        document.getElementById('sendFileCut').style.borderStyle = 'outset';
-        document.getElementById('sendCut').style.display = 'none';
-        document.getElementById('messengerCut').style.borderStyle = 'outset';
-        document.getElementById('messengerSec').style.display = 'none';
-        document.getElementById('receiveCut').style.display = 'block';
-    }
-}
-
-document.getElementById('messengerCut').onclick = function () {
-    if (document.getElementById('messengerCut').style.borderStyle !== 'inset') {
-        document.getElementById('sendFileCut').style.borderStyle = 'outset';
-        document.getElementById('sendCut').style.display = 'none';
-        document.getElementById('receiveFileCut').style.borderStyle = 'outset';
-        document.getElementById('receiveCut').style.display = 'none';
-        document.getElementById('messengerCut').style.borderStyle = 'inset';
-        document.getElementById('messengerSec').style.display = 'block';
-        if (document.getElementById('messengerCut').children[0].textContent != '0')
-        setTimeout(clearCountMessage,5000);
-    }
-}
-
-function clearCountMessage() {
-    document.getElementById('messengerCut').children[0].textContent='0';
-}
-
-// Запретим сбрасывать файлы на документ
-document.body.ondragover = function (e) {
-    e.stopPropagation();
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'none';
-    e.dataTransfer.effectAllowed = 'none';
-    return false;
-};
-document.body.ondrop = function (e) {
-    e.stopPropagation();
-    e.preventDefault();
-    return false
-};
-// Разрешим перетаскивать и сбрасывать файлы во внутрь элемента labelFile
-labelFile.ondragover = function (e) {
-    e.stopPropagation();
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
-    e.dataTransfer.effectAllowed = 'copy';
-    e.dataTransfer.setData('Files', e.dataTransfer.files);
-    return false;
-};
-// укладка перетаскиваемых файлов для отправки
-labelFile.ondrop = function (e) {
-    e.stopPropagation();
-    e.preventDefault();
-    loadListFiles(e.dataTransfer.files);
-    return false;
-};
-// выбор файлов для отправки
-sendFileInput.onchange = function (e) {
-    loadListFiles(sendFileInput.files);
-    sendFileInput.files = null;
-};
-// загрузка файлов в список для отправки
-function loadListFiles(files){
-    var liClone = sendListFile.children[0];
-    for (var i=0; i<files.length; i++){
-        var file = files[i];
-        var li = liClone.cloneNode(true);
-        li.style.display = 'block';
-        li.file=file;
-        li.children[0].title = 'отправить: ' + file.name;
-        li.children[0].textContent = file.name;
-        li.children[0].onclick = fileSendStart;
-        li.children[1].onclick = fileSendClear;
-        sendListFile.appendChild(li);
-        countSendFiles.textContent ++;
-        countUpload.textContent ++;
-    }
-}
-// удаление строки в списке выбранных для отправки файлов
-function fileSendClear(e) {
-    if (e.target.textContent == '×') countUpload.textContent --;
-    e.target.parentElement.remove();
-    countSendFiles.textContent --;
-    sendFile = null;
-    return false;
-}
-// Удаление всех строк выбранных для отправки файлов
-document.getElementById('clearFilesButton').onclick = function() {
-    removeChildren(sendListFile,1);
-    sendFile = null;
-    countUpload.textContent = '0';
-    countSendFiles.textContent = '0';
-};
-// Единичный запуск передачи файла
-function fileSendStart(e) {
-    sendFile = e.target.parentElement;
-    fileSend();
-    /*if (sendPC) {
-        if (sendChannel.readyState == 'open') fileSend();
-        else sendChannel = sendPC.createDataChannel('dataChannel');
-    }*/
-}
-sendFilesButton.onclick = sendAllFiles;
-function sendAllFiles() {
-    var l = sendListFile.children.length;
-    sendFilesAll = 1;
-    sendFile = newLoadFile();
-    if (sendFile){
-        fileSend();
-    }
-}
-// Создание канала связи на стороне отправителя
-function createSendPC() {
-    try {
-        sendPC = new RTCPeerConnection();
-        sendChannel = sendPC.createDataChannel('dataChannel');
-        sendChannel.binaryType = 'arraybuffer';
-        sendChannel.onopen = onOpenDataChanel;
-        sendChannel.onclose = onCloseDataChanel;
-        sendChannel.onerror = function(error) {console.error('Error in sendChannel:', error)};
-        sendPC.onicecandidate = onSendIceCandidate;
-        sendChannel.onmessage = onReceiveMessage;
-    } catch (err) {
-        console.log("Ошибка соединения: ", err);
-        showMessage('Ошибка соединения: '+ err.message,'Ошибка соединения')
-        exchangeClose();
-    }
-    sendPC.createOffer()
-        .then(function (offer) {
-            return sendPC.setLocalDescription(offer);
-        })
-        .then(function () {
-            wsSend({idUser: sendIdUser, sdp: sendPC.localDescription, command: 'ПредложениеSend'});
-            console.log("Отправлена команда ПредложениеSend");
-        })
-        .catch(function (err) {
-            console.log("Ошибка createOffer: ", err);
-            showMessage('Ошибка соединения: '+ err.message,'Ошибка соединения')
-            exchangeClose();
-        });
-}
-// Обработка получателем команды Предложение
-function sendCommandOffer(q) {
-    console.log("Получил SDP Offer от отправителя");
-    try {
-        sendIdUser = q.idUser;
-        if(sendIdUser == talkIdUser) sendUser = talkUsers[0];
-        else if(sendIdUser == curUser.idUser) sendUser = curUser;
-        else {
-            sendUser = {idUser: sendIdUser, fullName: 'anonim', name: 'anonim'};
-            for (var i=0;i < users.length; i++) {
-                if(sendIdUser == users[i].idUser) {
-                    sendUser=users[i];
-                    break;
-                }
-            }
-        }
-        exchangeBlock.firstElementChild.querySelector('div').textContent = sendUser.fullName + ' - обмен данными';
-        sendPC = new RTCPeerConnection();
-        sendPC.onicecandidate = onSendIceCandidate;
-        sendPC.addEventListener('datachannel', onDataChannel);
-        console.log('Определен peer получателя')
-    } catch (err){
-        wsSend({idUser: sendIdUser, command: 'СбросОбмен', comment: err.message}) ;
-        console.log("Ошибка соединения: ", err);
-        exchangeClose();
-    }
-    sendPC.setRemoteDescription(q.sdp)
-        .then(function() {
-            console.log('setRemoteDescription получателя complete');
-            return sendPC.createAnswer();
-        })
-        .then(function (desc) {
-            console.log('setLocalDescription получателя start');
-            wsSend({idUser: sendIdUser, command: 'ОтветSend', sdp: desc});
-            sendPC.setLocalDescription(desc);
-        })
-        .catch(function (err) {
-            wsSend({idUser: sendIdUser, command: 'СбросОбмен', comment: err.message}) ;
-            console.log('Ошибка настройки обмена: ', error);
-            exchangeClose();
-        });
-}
-// Обработка события ondatachannel на стороне получателя
-function onDataChannel(e) {
-    sendChannel = e.channel;
-    sendChannel.binaryType = 'arraybuffer';
-    sendChannel.onopen = onOpenDataChanel();
-    sendChannel.onclose = onCloseDataChanel();
-    sendChannel.onerror = function (error) {console.error('Error in sendChannel:', error);};
-    sendChannel.onmessage = onReceiveMessage;
-}
-// Закрытие обмена
-function exchangeClose() {
-    sendIdUser = null;
-    //sendUser = null;
-    if (sendChannel) sendChannel.close();
-    sendChannel = null;
-    if (sendPC) sendPC.close();
-    sendPC = null;
-    console.log('Каналы и соединения закрыты');
-    sendFile=null;
-    receiveFile = null;
-    modalClean(exchangeBlock);
-}
-// обмен Ice Candidate
-function onSendIceCandidate(evt) {
-    if (!evt || !evt.candidate) return;
-    wsSend({idUser: sendIdUser, candidateSend: evt.candidate });
-}
-// Обработка на стороне отправителя команды Ответ
-function sendCommandAnswer(q) {
-    console.log("Получил sdp Answer от получателя.");
-    try {
-        sendPC.setRemoteDescription(new RTCSessionDescription(q.sdp));
-        exchangeBlock.style.display='block';
-    } catch (err) {
-        wsSend({idUser: sendIdUser, command: 'СбросОбмен', comment: err.message});
-        console.log('Ошибка setRemoteDescription: ', err)
-        showMessage('Ошибка подключения:' + err.message);
-        exchangeClose();
-    }
-}
-// При открытии канала связи и при наличии файла для обмена - начинаем обмен
-function onOpenDataChanel() {
-    console.log('Канал передачи данных открыт'+ (sendFile ? ' для '+sendFile.file.name : ''));
-    //if (sendFile) fileSend();
-}
-// Обработка события закрытия канала
-function onCloseDataChanel() {
-    if(sendChannel) console.log('Канал передачи данных: ' + sendChannel.readyState);
-}
-// Передача файлов
-function fileSend() {
-    // Отправляем строку JSON
-    var file = sendFile.file;
-    if (file.size==0) return; // файлы нулевой длины не передаются
-    var text = JSON.stringify({type:'file',name: file.name, size: file.size});
-    try {
-        sendChannel.send(text);
-        console.log('Передан заголовок: '+text);
-    } catch (error) {
-        console.log('Ошибка передачи заголовка: ', error);
-        return false;
-    }
-    // Читаем файл блочно и передаем
-    var offset = 0;
-    var fileReader = new FileReader();
-    fileReader.onerror = function (error) {console.error('Ошибка чтения файла:', error)}
-    fileReader.onabort = function (event) {console.log('Чтение файла прервано:', event)}
-    fileReader.onload = function (e) {
-        try {
-            sendChannel.send(e.target.result);
-            console.log('Переданы данные файла байт: ',e.target.result.byteLength);
-        } catch (error){
-            console.log('Ошибка передачи данных файла: ', error);
-            sendChannel.send('{type: "error", comment: "Data transfer error"}')
-            showMessage('Ошибка передачи данных файла: ' + error.message, 'Ошибка передачи данных');
-            sendFile = null;
-            sendFilesAll = null;
-            return false;
-        }
-        offset += e.target.result.byteLength;
-        if (offset < file.size) {
-            blob = file.slice(offset, offset + sizeSendBlock);
-            fileReader.readAsArrayBuffer(blob);
-            sendFile.children[1].textContent=Math.round(offset*100/file.size)+"%";
-        } else {
-            sendFile.children[1].textContent='√';
-            sendFile.children[1].color = '#00ff00';
-            sendFile.children[0].title='отправлен: ' + file.name;
-            sendFile.children[0].onclick=null;
-            countUpload.textContent --;
-
-            if (sendFilesAll) {
-                sendFilesAll ++;
-                sendFile = newLoadFile();
-                if (sendFile) fileSend();
-            } else sendFile = null;
-        }
-    }
-    var blob = file.slice(offset, offset + sizeSendBlock);
-    fileReader.readAsArrayBuffer(blob);
-
-}
-function newLoadFile() {
-    sendFile = null;
-    for (var i= sendFilesAll; i<sendListFile.children.length; i++) {
-        if (sendListFile.children[i].children[1].textContent != '√') {
-            sendFilesAll = i;
-            sendFile = sendListFile.children[i];
-            break;
-        }
-    }
-    if (!sendFile) sendFilesAll = null;
-    return sendFile;
-}
-
-function onReceiveMessage(evt) {
-    // Обработка строковых данных
-    if (typeof evt.data == 'string') {
-        // Вытаскиваем объект из JSON. Должен быть указан тип
-        try {
-            var data = JSON.parse(evt.data);
-            if (!('type' in data)) throw 'не опреден тип переданных данных';
-        }
-        catch (error) {
-            console.log('Ошибка в данных: ', error);
-            return false;
-        }
-        // Открываем окно обмена - если закрыто
-        if (exchangeBlock.style.display !='block') {
-            modalShow(exchangeBlock);
-            receiveCutOnline();
-        }
-        // Если ошибка - сообщаем
-        if (data.type == "error") {
-            showMessage(('comment' in data) ? data.comment : 'Ошибка передачи данных', 'Ошибка на стороне собекседника');
-            if (receiveElement) receiveElement.remove();
-            receiveFile = null;
-        } else if (data.type == 'file') {
-            receiveFile = {name: data.name, size: data.size, offset: 0};
-            receiveElement = receiveListFile.firstElementChild.cloneNode(true);
-            receiveElement.children[1].textContent = 0;
-            receiveElement.style.display='block';
-            receiveElement.children[0].textContent = receiveFile.name;
-            receiveElement.children[1].onclick = fileReceiveClear;
-            receiveFile.buffer=[];
-            receiveListFile.appendChild(receiveElement);
-        } else if (data.type == 'message') {
-            var element = messengerList.children[0].cloneNode(true);
-            element.style.display='block';
-            element.children[1].textContent = data.text;
-            messengerList.appendChild(element);
-            document.getElementById('messengerCut').children[0].textContent ++;
-            if (document.getElementById('messengerCut').style.borderStyle !== 'outset') {
-                setTimeout(clearCountMessage,5000);
-            }
-        } else {
-            console.log('Тип ' + data.type +' пока еще не обрабатывается');
-        }
-    } else if(receiveFile) {
-        receiveFile.offset += evt.data.byteLength;
-        console.log('получен блок '+evt.data.byteLength+' байт файла ' + receiveFile.name + ', осталось ' + (receiveFile.size - receiveFile.offset) );
-        receiveFile.buffer.push(evt.data);
-        if (receiveFile.offset < receiveFile.size) {
-            receiveElement.children[1].textContent = Math.round(receiveFile.offset * 100 / receiveFile.size) + "%";
-        } else {
-            receiveElement.data_blob = new Blob(receiveFile.buffer);
-            receiveElement.children[0].href = URL.createObjectURL(receiveElement.data_blob);
-            receiveElement.children[0].download = receiveFile.name;
-            receiveElement.children[0].title="принять: "+receiveFile.name;
-            receiveElement.children[0].addEventListener('click',onLoadFile,true);
-            receiveElement.children[1].textContent = '×';
-            countReceiveFiles.textContent ++;
-            countDownload.textContent ++;
-            receiveFile = null;
-        }
-    } else {
-        console.log('Не определен файл для полученных данных');
-    }
-}
-// обработка события загрузки файла
-function onLoadFile(e) {
-    e.target.parentElement.children[1].textContent='↓';
-    countDownload.textContent --;
-}
-// Удаление из списка загруженных файлов информации о файле
-function fileReceiveClear(e) {
-    receiveFile = null;
-    if (e.target.textContent == '×') countDownload.textContent --;
-    else if (e.target.textContent != '↓') {
-        e.target.parentElement.remove();
-        return false;
-    }
-    e.target.parentElement.remove();
-    countReceiveFiles.textContent --;
-    return false;
-}
-// очистка списка загруженных файлов
-document.getElementById('clearLoadFilesButton').onclick = function clearLoadFiles() {
-    receiveFile = null;
-    removeChildren(receiveListFile,1);
-    countDownload.textContent = '0';
-    countReceiveFiles.textContent = '0';
-}
-// Отправка сообщения
-myMessage.value = '';
-document.getElementById('myMessageSend').onclick = function (e) {
-    if (!myMessage.value) return false;
-    sendChannel.send(JSON.stringify({type:'message',text: myMessage.value}));
-    var element = messengerList.children[1].cloneNode(true);
-    element.style.display='block';
-    element.children[1].textContent = myMessage.value;
-    messengerList.appendChild(element);
-    myMessage.value = '';
-}
 // Удаление дочерних узлов
 function removeChildren(elem, leave) {
     if(!leave) leave=0;
@@ -2184,274 +1712,56 @@ function removeChildren(elem, leave) {
     }
 }
 
-/************          Блок настройки        ************/
+/************          Общик функции        ************/
+// Подать сигнал
+async function signal(file,time) {
+    if (!file) file='image/signal.mp3';
+    if (!time) time=750;
+    bell.src=file;
+    bell.volume=1;
+    try {
+        await bell.play();
+        setTimeout(()=>{bell.pause();bell.src='';},time);
+    } catch (err){
+        console.log(err);
+    }
+}
 // отобразить блок element в модальном окне
 function modalShow(element) {
-    modal.style.display = 'block';
+    modal.hidden = false;
     modal.onclick = function(){
         modalClean(element);
     };
-    element.style.display = 'block';
+    element.hidden = false;
     var cleanBlock = element.querySelector('.cleanBlock');
     if (cleanBlock) cleanBlock.onclick=modal.onclick;
 }
 // убрать модальный блок
 function modalClean(element) {
-    modal.style.display = 'none';
+    modal.hidden = true;
     modal.onclick = null;
-    element.style.display='none';
+    element.hidden = true;
 }
-// Отобразить сообщение text в течении tyme=3000 мсек в заданном стиле
+// Отобразить сообщение text в течении tyme=3000 мсек в заданном стиле = true - информация об ошибке
 function messageVisible(text, time, style) {
     if (!text) text = 'Все ОК';
     if (!time) time = 3000;
-    elem = document.getElementById('messageOk');
+    var elem = document.getElementById('messageOk');
     elem.textContent = text;
     if (style) {
         if (style === true) elem.style.cssText = 'background-color: #cc2222; border-color: #ff8888;';
         else elem.style.cssText = style;
     }
-    elem.style.display='block';
-    setTimeout(function(){elem.style.display='none';}, time);
+    elem.hidden = false;
+    setTimeout(() => {elem.hidden = true}, time);
 }
-// обработка нажатия кнопки "настройки" на основной форме
-dialogsSettings.onclick = function (e) {
-    settingsBlock.style.display = 'block';
-    modal.style.display = 'block';
-    // Открываем текущею вкладку, если закрыта
-    for (var i=2; i<5; i++) {
-        if (settingsBlock.children[i].style.display == 'block') {
-            if (!('data_open' in settingsBlock.children[i])) {
-                settingsOpen(settingsBlock.children[i]);
-            }
-            break;
-        }
-    }
-}
-// Закрытие окна настройки
-document.getElementById('settingsExit').onclick = function (e) {
-    // Деактивация окна видео в настройках media-devices
-    if (settingsVideo.srcObject) {
-        settingsVideo.srcObject = null;
-        stopVideo();
-    }
-    var elem = document.getElementById('settingsMedia');
-    if ('data_open' in elem) delete elem.data_open;
-
-    modal.style.display='none';
-    settingsBlock.style.display = 'none';
-    // Сохранение настроек
-
-    if (document.getElementById('saveSettingsSwith').checked && settingsChange) {
-        setPropertyToCookie('settings',JSON.stringify(settingsSave), {expires: 32000000});
-        settingsChange = false;
-    }
-}
-// Управление вкладками: id вкладок = id блоков + "Cut"; возвращает текущий блок
-function controlCut(e, typeBlock) {
-    var openElement = null;
-    if (!typeBlock) typeBlock = 'block';
-    for (var i = 0; i < e.currentTarget.children.length; i++){
-        var elem = e.currentTarget.children[i];
-        var id=elem.id;
-        var idBlock = id.substr(0,id.length-3);
-        var elemBlock = document.getElementById(idBlock);
-        if (elem != e.target) {
-            if (elemBlock.style.display == typeBlock) {
-                elemBlock.style.display = 'none';
-                elem.style.borderStyle='outset';
-            }
-        } else if(elemBlock.style.display != typeBlock) {
-            elemBlock.style.display = typeBlock;
-            elem.style.borderStyle='inset';
-            openElement = elemBlock;
-        }
-    }
-    return openElement;
-}
-// Обработка нажатия на вкладку главной панели настроек
-document.getElementById('settingsCut').onclick = function (e) {
-    var openBlock = controlCut(e);
-    if (!('data_open' in openBlock)) settingsOpen(openBlock);
-    return false;
+// Имя файла из src
+function nameFile(src) {
+    var poz=src.lastIndexOf('/')+1;
+    return (poz < 0) ? src : src.substr(poz)
 }
 
-/*****************        Настройка медиа-устройств        ******************/
-// Переменные анализатора звука
-const settingsVideo = document.getElementById('settingsVideo');
-var audioContext = null;
-var soundMeter = null;
-var analiser = null;
-
- // при входе в настройки медиа-устройств
-function settingsOpen(elem) {
-    if (elem.id == 'settingsMedia') {
-        if (localVideoStream && localVideoStream.active) {
-            var mTrack = localVideoStream.getTracks();
-            mTrack.forEach(function (track) {
-                if (!track.enabled) track.enabled = true;
-            });
-            document.getElementById('settingsVideo').srcObject = localVideoStream;
-            settingsVideo.volume = document.getElementById('speakVolume').value;
-            meterVolumeVisible(localVideoStream);
-            document.getElementById('takePhotos').disabled=false;
-        }
-    } else if (elem.id == 'settingsOther') {
-        setSettingsOther();
-    } else if (elem.id == 'settingsPersonal') {
-        // Открываем текущею под-вкладку, если закрыта
-        for (var i=1; i<4; i++) {
-            if (elem.children[i].style.display == 'inline-block') {
-                if (!('data_open' in elem.children[i])) {
-                    privateBlockOpen(elem.children[i]);
-                }
-                break;
-            }
-        }
-    }
-    elem.data_open=true;
-}
-
-// Подключение медиа-устройств
-function mediaDeviceOn() {
-    var elem = document.getElementById('settingsVideo');
-    var resolution = document.getElementById('resolution').querySelector('input:checked').value;
-    var pos = resolution.indexOf('x');
-    var curVideoId=videoinput.value;
-    var curAudioId=audioinput.value;
-    var constraints = {
-        audio: {
-            deviceId: audioinput.value,
-            autoGainControl: document.getElementById('autoGainControl').checked,
-            echoCancellation: document.getElementById('echoCancellation').checked,
-            noiseSuppression: document.getElementById('noiseSuppression').checked
-        },
-        video: {
-            deviceId: videoinput.value,
-            width: {ideal: resolution.substr(0,pos)-0},
-            height: {ideal: resolution.substr(pos+1)-0}
-        }
-    }
-    navigator.mediaDevices.getUserMedia(constraints)
-        .then(function (stream) {
-            localVideoStream = stream;
-            document.getElementById('settingsVideo').srcObject = localVideoStream;
-            settingsVideo.volume = document.getElementById('speakVolume').value;
-            setTimeout(function() {
-                document.getElementById('resolutionVisual').textContent = elem.videoWidth + 'x' + elem.videoHeight;
-                //localVideoBlock.querySelector('.imgVideo').title = localVideo.videoWidth + 'x' + localVideo.videoHeight;
-                getsetAudio(localVideoStream.getAudioTracks()[0]);
-
-                mediaDeviceDefine();
-                meterVolumeVisible(localVideoStream);
-                document.getElementById('takePhotos').disabled=false;
-            },1500);
-
-        })
-        .catch(function (err) {
-            showMessage('Ошибка подключения медиа-устройства: '+ err.message,'Ошибка подключения медиа-устройства');
-        });
-}
-//Отключение медиаустройств
-function mediaDeviceOff() {
-    if (localVideoStream) {
-        var tracks=localVideoStream.getTracks();
-        tracks.forEach(function (track) {track.stop();});
-        settingsVideo.srcObject = null;
-        localVideoStream = null;
-        localVideo.srcObject = null;
-        document.getElementById('takePhotos').disabled=true;
-    }
-}
-// Устанавливает переключатели в положение, соответствующее реальным занчениям
-function getsetAudio(track) {
-    var getset = track.getSettings();
-    document.getElementById('autoGainControl').checked = 'autoGainControl' in getset ? getset.autoGainControl : false;
-    document.getElementById('echoCancellation').checked = 'echoCancellation' in getset ? getset.echoCancellation : false;
-    document.getElementById('noiseSuppression').checked = 'noiseSuppression' in getset ? getset.noiseSuppression : false;
-}
-// Обработка изменения видео-устройства
-videoinput.onchange = function () {
-    changeSettings('videoId', this.value);
-}
-// Обработка изменения аудио-устройства
-audioinput.onchange = function () {
-    changeSettings('audioId', this.value);
-}
-// Обработка изменения разрекшения
-document.getElementById('resolution').addEventListener('change',function (e) {
-    var resolution = e.target.value;
-    changeSettings('videoFormat',resolution);
-    var pos = resolution.indexOf('x');
-    settings.videoWidth = resolution.substr(0,pos) - 0; //Разрешение - ширина
-    settings.videoHeight = resolution.substr(pos+1) - 0;  //Разрешение - высота
-    if (!localVideoStream) return false;
-    var tracks = localVideoStream.getVideoTracks();
-    if (tracks.length === 0) {
-        return false;
-    }
-    var elem = document.getElementById('settingsVideo');
-
-    var pos = resolution.indexOf('x');
-    var constraints = {
-        width: {ideal: settings.videoWidth},
-        height: {ideal: settings.videoHeight}
-    }
-
-    tracks[0].applyConstraints(constraints)
-        .then(function () {
-            setTimeout(function() {
-                document.getElementById('resolutionVisual').textContent = elem.videoWidth + 'x' + elem.videoHeight;
-                localVideoBlock.querySelector('.imgVideo').title = localVideo.videoWidth + 'x' + localVideo.videoHeight;
-            },1500);
-
-        })
-        .catch(function (err) {
-            console.log('applyConstraints: ', err.name)
-        });
-    return false;
-});
-// Обработка изаенения переключателей настройки Аудио
-document.getElementById('autoGainControl').onchange = document.getElementById('echoCancellation').onchange =
-document.getElementById('noiseSuppression').onchange = function (e) {
-    if (!localVideoStream || !localVideoStream.active) {
-        return false;
-    }
-    var tracks = localVideoStream.getAudioTracks();
-    if (tracks.length === 0 || !tracks[0].enabled) {
-        return false;
-    }
-    changeSettings(this.id,this.checked);
-    tracks[0].applyConstraints({
-        autoGainControl: document.getElementById('autoGainControl').checked,
-        echoCancellation: document.getElementById('echoCancellation').checked,
-        noiseSuppression: document.getElementById('noiseSuppression').checked})
-            .then(function () {
-                setTimeout(function () {
-                    getsetAudio(tracks[0]);
-                }, 1500);
-            })
-            .catch(function (err) {
-                console.log('applyConstraints: ', err.name)
-            });
-    return false;
-}
-
-document.getElementById('speakVolume').oninput = function () {
-    document.getElementById('valueVolume').innerText = settingsVideo.volume = this.value;
-}
-
-function stopVideo() {
-    if (soundMeter) {
-        soundMeter.stop();
-        soundMeter = null;
-    }
-    if (localVideoStream && localVideoStream.active && (talkState=='none'||talkState=='bell')) {
-        var tracks = localVideoStream.getTracks();
-        tracks.forEach(function (track) {track.enabled=false});
-    }
-}
-
+// Изменение положения командной строки
 function commandLineUpDown() {
     var commonBlock = document.body.firstElementChild;
     var commandBlock = document.getElementById('headDialogs');
@@ -2463,534 +1773,3 @@ function commandLineUpDown() {
 
 }
 
-function videoOverflow(e) {
-    if (e.target.checked) {
-        document.getElementById('settingsVideoBlock').style.overflow='auto';
-        settingsVideo.style.width='';
-    } else {
-        document.getElementById('settingsVideoBlock').style.overflow='none';
-        settingsVideo.style.width='100%';
-    }
-}
-
-function meterVolumeVisible(stream0) {
-    var stream=new MediaStream(stream0.getAudioTracks());
-    audioContext = new (window.AudioContext || window.webkitAudioContext)();
-    analiser = audioContext.createAnalyser();
-    soundMeter = new SoundMeter(window.audioContext);
-    const meterVolume=document.getElementById('meterVolume');
-    const meterVolumeValue=document.getElementById('meterVolumeValue');
-    soundMeter.connectToSource(stream, function(e) {
-        if (e) {
-            alert(e);
-            return;
-        }
-        var timerID = setInterval(function() {
-            if (soundMeter) {
-                meterVolume.value = meterVolumeValue.innerText =
-                    soundMeter.instant.toFixed(2);
-            } else {
-                stream = null;
-                clearInterval(timerID);
-            }
-
-        }, 200);
-    });
-    return soundMeter;
-}
-// Нажатие на кнопку Сделать фото
-document.getElementById('takePhotos').onclick = function (e) {
-
-    var canvas = document.getElementById('settingsMedia').querySelector('canvas');
-    canvas.width = settingsVideo.videoWidth;
-    canvas.height = settingsVideo.videoHeight;
-    canvas.getContext('2d').drawImage(settingsVideo, 0, 0, canvas.width, canvas.height);
-    canvas.toBlob(function (file) {
-        waitSend.push({send: 'file', file: file, action: 'loadFoto'});
-        var isoDate=new Date().toISOString().substr(0,19).replace(/(-)|(:)|(T)/g,'');
-        var fileName='photo'+isoDate+'.png';
-        wsSend({send: 'file', url: 'foto/'+idUser+'/'+fileName});
-        messageVisible('Ваше фото находится в личном кабинете - фотографии с именем: ' + fileName, 4000)
-    },'image/png');
-}
-
-/**************** Общие настройки **********************/
-// первое открытие вкладки другие настройки
-function setSettingsOther() {
-    // Индикация отутствия данных пользователя в куках
-    if (!settings.trash) {
-        trashClear.src='image/trashNo.png';
-        trashClear.style.cursor = 'default';
-    }
-    // Настройка отображения наличия сохраненных настроек
-    settingsClearSwith.src = 'image/trashNo.png';
-    settingsClearSwith.style.cursor = 'default';
-    for (var i in settingsSave) {
-        settingsClearSwith.src = 'image/trashYes.png';
-        settingsClearSwith.style.cursor = 'pointer';
-        break;
-    }
-};
-// Обработка переключателя Сохранять настройки
-document.getElementById('saveSettingsSwith').onchange = function () {
-    changeSettings('save',this.checked);
-    if (!this.checked) {
-        setPropertyToCookie('settings',JSON.stringify(settingsSave), {expires: 32000000});
-        settingsChange=false;
-    }
-}
-// Обработка переключателя Запрашивать видеоустройства
-document.getElementById('setVideoDevice').onchange = function () {
-    changeSettings('queryVideoDevice', this.checked);
-}
-// Обработка переключателя Освобождать медиа-устройства
-document.getElementById('freeDevices').onchange = function () {
-    changeSettings('freeDevices', this.checked);
-}
-// Настройки - очистка данных авторизации
-trashClear.onclick = function (ev) {
-    if (!settings.trash) return;
-    deletePropertyFromCookie('name');
-    deletePropertyFromCookie('idUser');
-    settings.trash = false;
-    trashClear.src='image/trashNo.png';
-    trashClear.style.cursor = 'default';
-    //settingFinish('',true);
-};
-
-// Настройки - очистка настроек
-settingsClearSwith.onclick = function (ev) {
-    deletePropertyFromCookie('settings');
-    settingsSave = {};
-    settingsClearSwith.src = 'image/trashNo.png';
-    settingsClearSwith.style.cursor = 'default';
-    //settingFinish('',true);
-};
-
-
-
-/************************* Личный кабинет **************************/
-// Управление вкладками
-document.getElementById('privateCut').onclick = function (e) {
-    var openBlock = controlCut(e, 'inline-block');
-    if (!('data_open' in openBlock)) privateBlockOpen(openBlock);
-    return false;
-}
-// Открытие вкладок личного кабинета
-function privateBlockOpen(elem) {
-    if (elem.id === 'person') {
-        var mac=['name','surname','middleName','email','phone'];
-        mac.forEach(function (value) {
-            elem.querySelector('input[name="'+value+'"]').value=user[value]
-        });
-    } else if(elem.id === 'foto') {
-        wsSend({get: 'foto'});
-        document.getElementById('myFoto').src=user.foto;
-    }
-    elem.data_open=true;
-}
-// При изменении личных данных активация кнопки записать
-document.getElementById('person').onchange = function (e) {
-    var elem = this;
-    var buttons = elem.querySelectorAll('button');
-    if(buttons[0].disabled) {
-        buttons.forEach(function (button) {button.disabled=false});
-        buttons[1].onclick=function () {
-            privateBlockOpen(elem);
-            buttons[0].disabled=true;
-            buttons[1].disabled=true;
-        }
-        buttons[0].onclick=function () {
-            wsSend({action: 'updateUser',
-                name: elem.querySelector('input[name="name"').value,
-                surname: elem.querySelector('input[name="surname"').value,
-                middleName: elem.querySelector('input[name="middleName"').value,
-                email: elem.querySelector('input[name="email"').value,
-                phone: elem.querySelector('input[name="phone"').value
-            });
-            buttons[0].disabled=true;
-            buttons[1].disabled=true;
-        }
-    }
-    return false;
-}
-// Ответ от сервера об изменении личных данных
-function processUpdateUser(q) {
-    if(q.result) {
-        if (q.name) {
-            user.name = q.name;
-            user.noname = false;
-        } else {
-            user.name = user.login;
-            user.noname = true;
-        }
-        user.surname=q.surname;
-        user.middleName = q.middleName;
-        user.email = q.email;
-        user.phone = q.phone;
-        user.fullName = user.name.concat(' ', user.middleName, ' ', user.surname).trimRight().replace('  ', ' ');
-        messageVisible('Обновление личных данных выполнено успешно.');
-    } else {
-        showMessage(q.comment,'Ошибки при обновлении личных данных');
-    }
-}
-document.getElementById('ident').onchange = function (e) {
-    var login = this.querySelector('input[name="login"]').value;
-    var button = this.querySelector('button');
-    button.disabled = true;
-    if (login) {
-        if (this.querySelector('input[name="login1"]').value) {
-            if (login !== user.login) {
-                showMessage('Не верен логин или пароль', 'Ощибочные данные идентификации');
-                return;
-            } else button.disabled = false;
-        }
-        if (this.querySelector('input[name="password1"]').value &&
-            this.querySelector('input[name="password2"]').value) {
-            if (login !== user.login) {
-                showMessage('Не верен логин или пароль', 'Ошибочные данные идентификации');
-                button.disabled = true;
-                return false;
-            } else if (this.querySelector('input[name="password1"]').value !==
-                this.querySelector('input[name="password2"]').value) {
-                showMessage('Введеные новые пароли не совпадают', 'Ошибочные новые данные');
-                button.disabled = true;
-                return false;
-            } else button.disabled = false;
-        }
-        if (!button.disabled) {
-            elem=this;
-            button.onclick = function (ev) {
-                var query={action: 'updateIdent'};
-                query.login = elem.querySelector('input[name="login"]').value;
-                if (query.login !== user.login) {
-                    showMessage('Не верен логин или пароль', 'Ошибочные данные идентификации');
-                    return false;
-                }
-                query.password = elem.querySelector('input[name="password"]').value;
-                var wk = elem.querySelector('input[name="password1"]').value;
-                if (wk) {
-                    query.newPassword = wk;
-                }
-                var wk = elem.querySelector('input[name="login1"]').value;
-                if (wk) {
-                    query.newLogin = wk;
-                }
-                this.disabled=true;
-                wsSend(query);
-            }
-        }
-    }
-    return false;
-}
-// Ответ сервера на изменение идентификационных данных
-function processUpdateIdent(q) {
-    if(q.result) {
-        messageVisible('Данные идентификации пользователя успешно изменены.');
-        if (user.login !== q.login) {
-            user.login = q.login;
-            trashClear.onclick(null);
-        };
-        var idernt=document.getElementById('ident');
-        ident.querySelectorAll('input').forEach(function (elem) {elem.value='';})
-
-    } else {
-        showMessage(q.comment,'Ошибки при обновлении личных данных');
-    }
-}
-
-/********************************* ФОТО в Личном кабинете *****************************/
-var curfoto = null;     // Элемент текущей фото в списке
-var mainfoto = null;    // Элемент основной фото в списке
-// Получение списка фотографий от сервера
-function loadFoto(q) {
-    if (!q.result)
-        showMessage('Ошибки при получении списка фотографий: '+q.comment,'Ошибка получения списка фотографий');
-    else {
-        var ul= document.getElementById('fotoList').firstElementChild;
-        var currentFoto = user.foto.substr(7);
-        removeChildren(ul,0);
-        if (q.files.length===0) {
-            ul.insertAdjacentHTML('beforeend','<li>Список фотографий пуст</li>');
-        } else {
-            q.files.forEach(function (file) {
-                ul.insertAdjacentHTML('beforeend','<li title="foto/'+idUser+'/'+file+'">'+file+'</li>');
-                if (file == currentFoto) {
-                    curfoto = ul.lastElementChild;
-                    mainfoto = curfoto;
-                    curfoto.style.backgroundColor='#bbddff';
-                    mainfoto.style.fontWeight='600';
-                }
-            })
-        }
-    }
-}
-// Разрешим перетаскивать и сбрасывать файлы во внутрь элемента fotoList
-document.getElementById('fotoList').ondragover = function (e) {
-    e.stopPropagation();
-    e.preventDefault();
-    e.dataTransfer.dropEffect = 'copy';
-    e.dataTransfer.effectAllowed = 'copy';
-    e.dataTransfer.setData('Files', e.dataTransfer.files);
-    return false;
-};
-// укладка перетаскиваемых файлов для добавления
-fotoList.ondrop = function (e) {
-    e.stopPropagation();
-    e.preventDefault();
-    loadFotoList(e.dataTransfer.files);
-    return false;
-};
-// выбор файлов для добавления
-inputFoto.onchange = function (e) {
-    loadFotoList(inputFoto.files);
-    inputFoto.files = null;
-};
-// загрузка файлов в список для добавления
-function loadFotoList(files){
-    var types=['jpg','jpeg','jp2','png'];
-    var nofile = true;
-    for (var i=0; i<files.length; i++){
-        var file = files[i];
-        // Проверка типа файла
-        var poz = file.name.lastIndexOf('.');
-        if (poz<=0) continue;
-        var type=file.name.substr(poz+1).toLowerCase();
-        if (types.indexOf(type)<0) continue;
-        // Передача данных о передаваемом файле
-        wsSend({send: 'file', url: 'foto/'+idUser+'/'+file.name, size: file.size});
-        waitSend.push({send: 'file', file: file, action: 'loadFoto'});
-        nofile = false;
-        break;
-    }
-    if (nofile) messageVisible('ошибочные данные для передачи, требуется тип jpg или png.',3000,true);
-}
-// Передача файла на сервер
-function processFile(q) {
-    var i = waitSend.length-1;
-    console.log(q);
-    if (i<0) return;
-    if (!q.result) {
-        messageVisible(q.comment,3000, true);
-        waitSend.pop();
-        return;
-    }
-    if ('exist' in q) {
-        var query=waitSend[i];
-        query.exist=q.exist;
-        if (query.send === 'file') {
-            webSocket.send(query.file);
-        }
-    }
-    else {
-        query = waitSend.pop();
-        var fotoList = document.getElementById('fotoList');
-        var ul = fotoList.firstElementChild;
-        var img = document.getElementById('myFoto');
-        if (!query.exist) {
-            var poz = q.url.lastIndexOf('/') + 1;
-            if (curfoto) curfoto.style.backgroundColor = '';
-            ul.insertAdjacentHTML('beforeend', '<li title="' + q.url + '" style="background-color: #bbddff;">' + q.url.substr(poz) + '</li>');
-            curfoto = ul.lastElementChild;
-            img.src = q.url;
-            document.getElementById('fotoMakeMain').disabled = document.getElementById('fotoDelete').disabled = false;
-        } else {
-            if (curfoto && curfoto.title !== q.url) {
-                var elem = ul.querySelector('li[title="' + q.url + '"]');
-                if (elem) {
-                    curfoto.backgroundColor = '';
-                    curfoto = elem;
-                    curfoto.backgroundColor = '#bbddff';
-                } else {
-                    console.log('Не найден обновляемый файл '+ q.url + ' в списке');
-                    return;
-                }
-            }
-            if ('dataV' in curfoto) curfoto.dataV++; else curfoto.dataV=1;
-            document.getElementById('fotoMakeMain').disabled = document.getElementById('fotoDelete').disabled = (curfoto == mainfoto);
-            /*cache.delete(q.url).then(function () {*/
-            img.src = q.url + '?'+curfoto.dataV
-            //});
-        }
-    }
-}
-// Перемещение по списку
-document.getElementById('fotoList').firstElementChild.onclick = function (e) {
-    if (curfoto == e.target) return false;
-    if (e.target.nodeName !== 'LI') return;
-    if (curfoto) curfoto.style.backgroundColor = '';
-    curfoto = e.target;
-    curfoto.style.backgroundColor = '#bbddff';
-    document.getElementById('myFoto').src=curfoto.title + ('dataV' in curfoto ? '?'+curfoto.dataV : '');
-    document.getElementById('fotoMakeMain').disabled = document.getElementById('fotoDelete').disabled = (curfoto==mainfoto);
-}
-// Запрос серверу на изменение основного фото
-document.getElementById('fotoMakeMain').onclick = function () {
-    if (curfoto == mainfoto) return false;
-    wsSend({action:'updateFoto', foto: curfoto.textContent})
-}
-// обработка ответа сервера на изменение основного фото
-function processUpdateFoto(q) {
-    if (curfoto.textContent == q.foto) {
-        if (mainfoto) mainfoto.style.fontWeight = '';
-        mainfoto=curfoto;
-        mainfoto.style.fontWeight = '600';
-        document.getElementById('fotoMakeMain').disabled = document.getElementById('fotoDelete').disabled = true;
-        user.foto = mainfoto.title;
-        localFoto.src=user.foto;
-    }
-}
-// Запрос серверу на удаление фото
-document.getElementById('fotoDelete').onclick = function () {
-    if (curfoto == mainfoto) return false;
-    wsSend({action:'deleteFile', file: curfoto.title})
-}
-// обработка ответа сервера на удаление файла
-function processDeleteFile(q) {
-    if (curfoto.title == q.file) {
-        curfoto.remove();
-        curfoto = mainfoto;
-        var img = document.getElementById('myFoto');
-        if (mainfoto) {
-            curfoto.backgroundColor='#bbddff';
-            document.getElementById('fotoMakeMain').disabled = document.getElementById('fotoDelete').disabled = true;
-            img.src = curfoto.title + ('dataV' in curfoto ? '?'+curfoto.dataV : '');
-        } else {
-           img.src = user.foto;
-        }
-    }
-}
-// После загрузки фото определяем видимость кнопки "Обрезать"
-document.getElementById('myFoto').onload = function () {
-    document.getElementById('fotoTrim').style.display =
-    (this.parentElement.scrollHeight === this.parentElement.clientHeight) ? 'none' : 'inline-block';
-}
-// Обрезка фотографии
-document.getElementById('fotoTrim').onclick = function () {
-    // Определим смещение сверху и зафиксируем текущую ширину
-    var img = document.getElementById('myFoto');
-    var top = img.parentElement.scrollTop;
-    var width0 = img.width;
-    var height0 = img.height;
-    img.style.width = '';
-    var width1 = img.width;
-    var height1 = img.height;
-    var div = width1/width0;
-    //img.style.width = '100%';
-    //img.parentElement.scrollTop = top;
-    //console.log(`отступ: ${top}, ширина: ; ${width0}, ${width1}; высота ${height0}, ${height1}`);
-    var canvas = document.getElementById('settingsMedia').querySelector('canvas');
-    canvas.width = width1;
-    canvas.height = width1*0.75;
-
-    var canvas2d = canvas.getContext('2d');
-    canvas2d.drawImage(img, 0, top*div, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-    canvas.toBlob(function (file) {
-        waitSend.push({send: 'file', file: file, action: 'loadFoto'});
-        wsSend({send: 'file', url: curfoto.title});
-    },'image/png');
-    img.style.width = '100%';
-}
-
-/************************ Контакты, поиск ********************************/
-
-// Обработка изменения значений и пометок поисковых реквизитов
-document.getElementById('searchDetails').onchange = function(e) {
-    var elem = e.target;
-    if (elem.type!=="checkbox") {
-        if (elem.value.trim()) {
-            elem.parentElement.firstElementChild.disabled = false;
-            elem.parentElement.firstElementChild.checked  = true;
-            document.getElementById('commandFind').disabled = false;
-            document.getElementById('clearFindFields').disabled = false;
-            return false;
-        } else {
-            elem.parentElement.firstElementChild.checked  = false;
-            elem.parentElement.firstElementChild.disabled = true;
-        }
-    } else if (elem.checked) {
-        document.getElementById('commandFind').disabled = false;
-        document.getElementById('clearFindFields').disabled = false;
-        return false;
-    }
-    var cleardisabled = true;
-    for (var i=0; i < this.children.length; i++) {
-        if (this.children[i].firstElementChild.checked) {
-            document.getElementById('commandFind').disabled = false;
-            document.getElementById('clearFindFields').disabled = false;
-            return false;
-        } else if(this.children[i].lastElementChild.value.trim()) cleardisabled = false;
-    }
-    document.getElementById('commandFind').disabled = true;
-    document.getElementById('clearFindFields').disabled = cleardisabled;
-    return false;
-}
-// Обработка нажатия кнопки найти
-document.getElementById('commandFind').onclick = function (e) {
-    var query={action: 'findUsers'};
-    var els=document.getElementById('searchDetails').children;
-    for (var i=0; i < els.length; i++) {
-        if (els[i].firstElementChild.checked) {
-            query[els[i].lastElementChild.name]=els[i].lastElementChild.value;
-        }
-    }
-    wsSend(query);
-    return false;
-}
-// Обработка ответа поиск контактов
-function processFindUsers(q) {
-    var ul=document.getElementById('foundContact');
-    if (q.data.length===0) {
-        messageVisible("Контакты не найдены",2000, true);
-    } else {
-        document.getElementById('clearFindContacts').disabled = false;
-        q.data.forEach(function (value) {
-            ul.insertAdjacentHTML('beforeend','<li data-id="'+value.idUser+'">'+value.fullName+'</li>');
-        })
-    }
-}
-// Обработка нажатия на найденный контакт
-document.getElementById('foundContact').onclick = function (e) {
-    if (e.target.tagName==='LI') {
-        if ('curLi' in this) this.curLi.style.backgroundColor='';
-        this.curLi=e.target;
-        e.target.style.backgroundColor = '#bbddff'
-        document.getElementById('commandAddContact').disabled=false;
-        return false;
-    }
-}
-// Обработка нажатия на Очистить поисковые поля
-document.getElementById('clearFindFields').onclick = function (e) {
-    var els = document.getElementById('searchDetails').children;
-    if (els.length>0) {
-         for (var i=0; i<els.length; i++) {
-            elem=els[i];
-            elem.firstElementChild.checked=false;
-            elem.firstElementChild.disabled=true;
-            elem.lastElementChild.value='';
-        };
-        document.getElementById('commandFind').disabled = true;
-        document.getElementById('clearFindFields').disabled = true;
-    }
-}
-// Обработка нажатия на Очистить найденные контакты
-document.getElementById('clearFindContacts').onclick = function (e) {
-    var foundContact=document.getElementById('foundContact');
-    if ('curLi' in foundContact) delete foundContact.curLi;
-    removeChildren(document.getElementById('foundContact'),0);
-    document.getElementById('commandAddContact').disabled = true;
-    document.getElementById('clearFindContacts').disabled = true;
-}
-// Обработка нажатия клавиши Добавить контакт
-document.getElementById('commandAddContact').onclick = function (e) {
-    var idUserNew = document.getElementById('foundContact').curLi.dataset.id;
-    for (var i=0; i < users.length; i++) {
-        if (users[i].idUser == idUserNew) {
-            messageVisible("Контакт: "+users[i].fullName+' уже существует.', 3000, true)
-            document.getElementById('foundContact').curLi.remove();
-            delete document.getElementById('foundContact').curLi;
-            return false;
-        }
-    }
-    wsSend({action: 'addUser', idUser: idUserNew});
-}

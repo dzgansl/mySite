@@ -64,9 +64,9 @@
 
         <!--Правый блок: Окна видео, диалога, окно ввода -->
         <div id="userPanels" class="winSoft winSoftRight">
-            <div id="videoBlock">
+            <div id="videoBlock" hidden>
                 <audio id="bell" loop></audio>
-                <div id="screenBlock" >
+                <div id="screenBlock" hidden>
                     <video id="screen"></video>
                 </div>
 
@@ -78,17 +78,17 @@
                         <img src="image/eyeOpen.png" class="imgVideo" onmouseenter="onResolution(event)">
                         <div class="videoHeadTxt">fullName</div>
                     </div>
-                    <img src="foto/anonim.jpg" style="width: 100%;display: none;">
-                    <video autoplay style="width: 100%; display: none"></video>
+                    <img src="foto/anonim.jpg" hidden class="width100">
+                    <video autoplay hidden class="width100"></video>
                 </div>
             </div>
-            <div class="panel">
+            <div hidden class="panel">
                 <!-- Дерево диалогов -->
                 <ul class="dialogs">
                 </ul>
 
                 <!-- Информационный блок состояния собеседника -->
-                <div class="dialogsInfo" style="">
+                <div class="dialogsInfo">
                     <div *ngIf="data.curUser.writes" style="padding-left: 40px; display: none">
                         <span style="color: #007777; padding-right: 2px">{{data.curUser.name + ': '}}</span>
                         <img src="image/writes.png" class="writes">
@@ -116,9 +116,7 @@
         </div>
     </div>
 
-    <div id="modal"></div>
-
-    <main id="hello" class="selectNone">
+    <main id="hello" hidden class="selectNone">
         <header>
             <img src="image/login-24.png">
             <span>Приветствую Вас</span>
@@ -158,7 +156,7 @@
 
                 </div>
 
-                <div style="display: none" id="emailBlock" >
+                <div hidden id="emailBlock" >
                     <div class="identComments">
                         На этот email придет пароль, если вы его забудите.
                     </div>
@@ -172,27 +170,26 @@
 
           </form>
     </main>
-
-    <div id="exchangeBlock" class="selectNone">
+    <div id="exchangeBlock" hidden class="selectNone">
         <header>
             <img src="image/exchangeColor.png">
             <div>Обмен файлами</div>
             <button  id="exchangeExit" type="button">&times;</button>
             <button  id="exchangeHide" type="button">_</button>
         </header>
-        <section class="cuts">
+        <section id="exchangeCut" class="cuts">
             <div id="sendFileCut" title="переслать файлы" style="border-style: inset">
-                <!--img src="image/sendFile.png"--> Переслать: <span id="countUpload">0</span>
+                Переслать: <span id="countUpload">0</span>
             </div>
-            <div id="receiveFileCut" title="принять файлы" style="border-style: outset">
-                <!--img src="image/receiveFile.png"--> Принять: <span id="countDownload">0</span>
+            <div id="receiveBlockCut" title="принять файлы" style="border-style: outset">
+                Принять: <span id="countDownload">0</span>
             </div>
-            <div id="messengerCut" title="чат" style="border-style: outset">
-                <!--img src="image/chat.png"--> Сообщений: <span id="countMessage">0</span>
+            <div id="messengerBlockCut" title="чат" style="border-style: outset">
+                Сообщений: <span id="countMessage">0</span>
             </div>
 
         </section>
-        <section id="sendCut">
+        <section id="sendFile">
             <ul id="sendListFile">
                 <li style="display: none">
                     <div class="fileName" title="отправить: file.name">file.name</div>
@@ -211,7 +208,7 @@
                 <button id="sendFilesButton"><span>&uarr; отправить</span></button>
             </div>
         </section>
-        <section id="receiveCut" style="display: none">
+        <section id="receiveBlock" hidden>
             <ul id="receiveListFile">
                 <li style="display: none">
                     <a class="fileName" title="принять: file.name">file.name</a>
@@ -223,13 +220,13 @@
                 <button id="clearLoadFilesButton"><span>&times; очистить все</span></button>
             </div>
         </section>
-        <section id="messengerSec" style="display: none">
+        <section id="messengerBlock" hidden>
             <ul id="messengerList">
-                <li class="heMessageStr" style="display: none">
+                <li style="display: none" class="heMessageStr">
                     <span>мне<=&nbsp</span>
                     <span class="heMessageTxt">Это пишет он</span>
                 </li>
-                <li class="myMessageStr" style="display: none">
+                <li style="display: none" class="myMessageStr">
                     <span>я=>&nbsp</span>
                     <span class="myMessageTxt">Это пишу я</span>
                 </li>
@@ -243,7 +240,7 @@
         </section>
     </div>
 
-    <div id="settingsBlock" style="display: none" class="selectNone">
+    <div id="settingsBlock" hidden class="selectNone">
         <header>
             <img src="image/settings.png">
             <div>Настройки</div>
@@ -261,7 +258,7 @@
             </div>
 
         </section>
-        <section id="settingsMedia" style="display: block">
+        <section id="settingsMedia">
             <label title="Камера"><img src="image/camera.png">
                 <select id="videoinput">
                     <!--option value="id камеры">camera 1</option-->
@@ -272,7 +269,7 @@
                     <!--option value="id камеры">camera 1</option-->
                 </select>
             </label>
-            <label title="Динамики" style="display: none"><img src="image/camera.png">
+            <label title="Динамики" hidden><img src="image/camera.png">
                 <select id="audiooutput">
                     <!--option value="id камеры">camera 1</option-->
                 </select>
@@ -283,8 +280,8 @@
                     <video id="settingsVideo" style="width: 100%" autoplay ></video>
                 </div>
                 <div id="resolution">
-                    <button onclick="mediaDeviceOn()">Подключить</button>
-                    <button onclick="mediaDeviceOff()">Отключить</button>
+                    <button>Подключить</button>
+                    <button>Отключить</button>
                     <label><input type="radio" name="resolution" value="160x120"> 160 x 120</label>
                     <label><input type="radio" name="resolution" value="320x240"> 320 x 240</label>
                     <label><input type="radio" name="resolution" value="640x480"> 640 x 480</label>
@@ -294,7 +291,7 @@
                 </div>
             </div>
             <div>
-                <label><input onchange="videoOverflow(event)" type="checkbox">Реальный размер видео</label>
+                <label><input id="videoOverflow" type="checkbox">Реальный размер видео</label>
                 <button disabled id="takePhotos" style="margin-left: 35px; height: 24px">Сделать фото</button>
                 <canvas style="display: none"></canvas>
             </div>
@@ -316,7 +313,7 @@
             </div>
 
         </section>
-        <ul type="none" id="settingsOther" class="selectNone" style="display: none">
+        <ul type="none" id="settingsOther" class="selectNone" hidden>
             <!--div class="cleanBlock" onclick="modalClean">&times;</div-->
             <li><input type="checkbox" class="set" id="saveSettingsSwith" checked><span>Сохранять настройки</span></li>
             <li><input type="checkbox" class="set" id="setVideoDevice" checked><span>Запрашивать видео-устройства при начале аудио-общения, для возможности включить видео</span></li>
@@ -325,81 +322,87 @@
             <li><img src="image/trashYes.png" class="set" id="settingsClearSwith"><span>Очистить настройки пользователя</span></li>
 
         </ul>
-        <section id="settingsPersonal" style="display: none">
+        <section id="settingsPersonal" hidden>
             <div id="privateCut">
                 <div id="personCut" class="cutPerson" style="border-style: inset">Личные данные</div>
                 <div id="identCut" class="cutPerson">Иденти-фикация</div>
                 <div id="fotoCut" class="cutPerson">Фото-графии</div>
                 <div id="findCut" class="cutPerson">Поиск контактов</div>
             </div>
-            <div id="person" class="privateBlock" style="display: inline-block;">
-                <div><span>Имя:</span><input name="name" type="text"></div>
-                <div><span>Отчество:</span><input name="middleName" type="text"></div>
-                <div><span>Фамилия:</span><input name="surname" type="text"></div>
-                <div><span>E-mail:</span><input name="email" type="email"></div>
-                <div><span>Телефон:</span><input name="phone" type="text"></div>
-                <button disabled>Записать</button><button disabled title="отменить изменения">Отменить</button>
-            </div>
-            <div id="ident" class="privateBlock" style="display: none;">
-                <div style="margin-top: 5px">Введите текущие значения:</div>
-                <div><span>логин:</span><input name="login" type="text" required></div>
-                <div><span>пароль:</span><input name="password" type="password"></div>
-                <div style="margin-top: 5px">Введите измененные новые значения:</div>
-                <div><span>логин:</span><input name="login1" type="text"></div>
-                <div><span>пароль:</span><input name="password1" type="password"></div>
-                <div><span>еще раз:</span><input name="password2" type="password"></div>
-                <button disabled>Изменить</button>
-            </div>
-            <div id="foto" class="privateBlock" style="display: none;">
-                Список фотографий:
-                <div id="fotoList">
-                    <ul>
-                    </ul>
-                    <label>
-                        <input type="file" id="inputFoto" accept="image/gif, image/jp2, image/jpeg, image/png">
-                        Выберите или перетащите файл для добавления
-                    </label>
+            <div class="privateBlock">
+                <div id="person">
+                    <div><span>Имя:</span><input name="name" type="text"></div>
+                    <div><span>Отчество:</span><input name="middleName" type="text"></div>
+                    <div><span>Фамилия:</span><input name="surname" type="text"></div>
+                    <div><span>E-mail:</span><input name="email" type="email"></div>
+                    <div><span>Телефон:</span><input name="phone" type="text"></div>
+                    <button disabled>Записать</button><button disabled title="отменить изменения">Отменить</button>
                 </div>
-                <div>
-                    <button id="fotoMakeMain" title="сделать основной" disabled>Основная</button>
-                    <button id="fotoTrim" style="display: none">Обрезать</button>
-                    <button id="fotoDelete" disabled>Удалить</button>
+                <div id="ident" hidden>
+                    <div style="margin-top: 5px">Введите текущие значения:</div>
+                    <div><span>логин:</span><input name="login" type="text" required></div>
+                    <div><span>пароль:</span><input name="password" type="password"></div>
+                    <div style="margin-top: 5px">Введите измененные новые значения:</div>
+                    <div><span>логин:</span><input name="login1" type="text"></div>
+                    <div><span>пароль:</span><input name="password1" type="password"></div>
+                    <div><span>еще раз:</span><input name="password2" type="password"></div>
+                    <button disabled>Изменить</button>
                 </div>
-                <div style="height: calc(var(--wHello) * 0.75 - 60px); overflow: auto">
-                    <img id="myFoto" style="width: 100%">
+                <div id="foto" hidden>
+                    Список фотографий:
+                    <div id="fotoList">
+                        <ul>
+                        </ul>
+                        <label>
+                            <input type="file" id="inputFoto" accept="image/gif, image/jp2, image/jpeg, image/png">
+                            Выберите или перетащите файл для добавления
+                        </label>
+                    </div>
+                    <div>
+                        <button id="fotoMakeMain" title="сделать основной" disabled>Основная</button>
+                        <button id="fotoTrim" style="display: none">Обрезать</button>
+                        <button id="fotoDelete" disabled>Удалить</button>
+                    </div>
+                    <div style="height: calc(var(--wHello) * 0.75 - 60px); overflow: auto">
+                        <img id="myFoto" style="width: 100%">
+                    </div>
+
+                </div>
+                <div id="find" hidden>
+                    <div style="height: 24px">
+                        <span style="padding-top: 5px">Заполните любые реквизиты</span>
+                    </div>
+                    <div id="searchDetails">
+                        <div><input type="checkbox" disabled><span>Имя:</span><input name="name" type="text"></div>
+                        <div><input type="checkbox" disabled><span>Отчество:</span><input name="middleName" type="text"></div>
+                        <div><input type="checkbox" disabled><span>Фамилия:</span><input name="surname" type="text"></div>
+                        <div><input type="checkbox" disabled><span>E-mail:</span><input name="email" type="email"></div>
+                        <div><input type="checkbox" disabled><span>Телефон:</span><input name="phone" type="text"></div>
+                        <div><input type="checkbox" disabled><span>Логин:</span><input name="login" type="text"></div>
+                        <!--div><input type="checkbox" disabled><span>Регион:</span><select></select></div-->
+                    </div>
+                    <div style="margin: 5px 15px; height: 24px" >
+                        <button id="commandFind" disabled>Найти</button>
+                        <button id="clearFindFields" disabled>Очистить</button>
+                    </div>
+                    <ol id="foundContacts" >
+                    </ol>
+                    <div style="margin: 5px 15px; height: 24px" >
+                        <button id="commandAddContact" disabled>Добавить контакт</button>
+                        <button id="clearFindContacts" disabled>Очистить</button>
+                    </div>
                 </div>
 
-            </div>
-            <div id="find" class="privateBlock" style="display: none;">
-                <div style="height: 24px">
-                    <span style="padding-top: 5px">Заполните любые реквизиты</span>
-                </div>
-                <div id="searchDetails">
-                    <div><input type="checkbox" disabled><span>Имя:</span><input name="name" type="text"></div>
-                    <div><input type="checkbox" disabled><span>Отчество:</span><input name="middleName" type="text"></div>
-                    <div><input type="checkbox" disabled><span>Фамилия:</span><input name="surname" type="text"></div>
-                    <div><input type="checkbox" disabled><span>E-mail:</span><input name="email" type="email"></div>
-                    <div><input type="checkbox" disabled><span>Телефон:</span><input name="phone" type="text"></div>
-                    <div><input type="checkbox" disabled><span>Логин:</span><input name="login" type="text"></div>
-                    <!--div><input type="checkbox" disabled><span>Регион:</span><select></select></div-->
-                </div>
-                <div style="margin: 5px 15px; height: 24px" >
-                    <button id="commandFind" disabled>Найти</button>
-                    <button id="clearFindFields" disabled>Очистить</button>
-                </div>
-                <ol id="foundContact" >
-                </ol>
-                <div style="margin: 5px 15px; height: 24px" >
-                    <button id="commandAddContact" disabled>Добавить контакт</button>
-                    <button id="clearFindContacts" disabled>Очистить</button>
-                </div>
             </div>
         </section>
     </div>
-    <div id="messageOk" style="display: none">Все OK</div>
+    <div id="modal" hidden></div>
+    <div id="messageOk" hidden>Все OK</div>
 
     <script src="../nsllib.js"></script>
     <script src="dialogs.js"></script>
+    <script src="exchange.js"></script>
+    <script src="settings.js"></script>
     <script src="soundmeter.js"></script>
 </body>
 </html>

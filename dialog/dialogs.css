@@ -56,6 +56,8 @@ body {
 }
 button {cursor: pointer}
 button[disabled] {cursor: default}
+
+.width100 {width: 100%}
 /****************** Главны заголовок *******************/
 #headDialogs {
     height: var(--hHead);
@@ -149,12 +151,11 @@ button[disabled] {cursor: default}
 }
 /***************** Видео и голос  ****************/
 #videoBlock {
-    overflow: auto;display: none;
+    overflow: auto;
     max-height: calc(100% - var(--hPanel));
 }
 #screenBlock {
     width: calc(100% - 2px);
-    display: none;
     padding: 0;
     margin: 0;
 }
@@ -198,13 +199,12 @@ button[disabled] {cursor: default}
 /***************** Панель переписки *********************/
 .panel {
     height: var(--hPanel);
-    width: 100%; display: none
+    width: 100%;
 }
 
 .dialogs {
     overflow-y: auto; margin: 0; padding: 5px; box-sizing: border-box;vertical-align: top;
     height: calc(100% - 53px);
-    /*min-height: calc(var(--hPanelMin) - 53px);*/
 }
 .dialogs>li {cursor: default;list-style: none;margin: 0; overflow: hidden;padding-left: 0px;}
 /*li ul {padding-left: 16px;}*/
@@ -323,7 +323,6 @@ textarea {
     border-radius: 10px;
     border-style: outset;
     color: #000000;
-    display: none;
 }
 #hello>header, #exchangeBlock>header, #settingsBlock>header {
     padding-bottom: -10px;
@@ -463,7 +462,6 @@ calc(var(--wHello) - 70px);
     border-color: #ffeedd;
     border-style: outset;
     color: #000000;
-    display: none;
     overflow: hidden;
 }
 #exchangeBlock>header>div {
@@ -483,7 +481,7 @@ calc(var(--wHello) - 70px);
     display: block;
 }
 
-#sendFileCut, #receiveFileCut, #messengerCut, .cuts>div {
+#sendFileCut, #receiveBlockCut, #messengerBlockCut, .cuts>div {
     display: inline-block;
     border-color: #eee;
     color: #242;
@@ -508,7 +506,7 @@ calc(var(--wHello) - 70px);
     padding-right: 5px;
     vertical-align: middle;
 }
-#sendCut, #receiveCut, #messengerSec {
+#sendFile, #receiveBlock, #messengerBlock {
     border-right: #cccccc outset;
     border-bottom: #cccccc outset;
     margin-top: 0px;
@@ -539,7 +537,7 @@ calc(var(--wHello) - 70px);
 #sendListFile>li, #receiveListFile>li  {
     width: 100%; height: 24px; box-sizing: border-box;
     margin-top: 2px;
-    background-color: #ffffff;
+    background-color: #ffffff; display: block;
 }
 #sendListFile .fileName, #receiveListFile .fileName{
     display: inline-block;
@@ -645,7 +643,7 @@ calc(var(--wHello) - 70px);
     -ms-user-select: none;
 }
 #modal {
-    display: none; position: fixed;
+    position: fixed;
     top: 0; left: 0; width: 100vw; height: 100vw;
     background: rgba(153,153,153,0.3); z-index: 9000;
 }
@@ -749,7 +747,7 @@ calc(var(--wHello) - 70px);
     cursor: pointer;
 }
 .privateBlock {
-    width: calc(100% - 90px)
+    width: calc(100% - 90px); display: inline-block;
 }
 #person span, #ident span {
     box-sizing: border-box; padding: 5px 0 0 5px; width: 10ch;display: inline-block;
@@ -811,10 +809,10 @@ calc(var(--wHello) - 70px);
 #find button {
     float: right; margin-right: 5px;
 }
-#foundContact {
+#foundContacts {
     overflow-y: auto; max-height: 150px;min-height: 100px; margin: 5px 20px 5px 0px;
     background-color: #ffffff; border: inset; padding-left: 25px; padding-top: 5px;
 }
-#foundContact ol {
+#foundContacts ol {
     padding: 5px; display: block;
 }
