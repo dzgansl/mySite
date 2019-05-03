@@ -85,6 +85,9 @@ body {
     height: calc(var(--fontSize) * 2);
 
 }
+a {
+    text-decoration-line: none; color: #000000
+}
 #info {
     display: none;
     position: fixed;
