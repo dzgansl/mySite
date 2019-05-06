@@ -332,6 +332,7 @@ function processReply (q) {
         fotoBlock.processFile(q);
     }
     else if (q.reply==='deleteFile') fotoBlock.processDeleteFile(q);
+    else if (q.reply==='renameFile') fotoBlock.processRenameFile(q);
     else if (q.reply==='findUsers') findContact.processFindUsers(q);
 }
 // обработка данных ответа сервера авторизации
@@ -989,6 +990,9 @@ function resize() {
     else if(!document.getElementById('exchangeBlock').hidden) visualBlock = document.getElementById('exchangeBlock');
     else if(!document.getElementById('settingsBlock').hidden) visualBlock = document.getElementById('settingsBlock');
     if (visualBlock && visualBlock.offsetTop < 0) visualBlock.style.top = 0;
+    if (!document.getElementById('fotoRenameBlock').hidden) {
+        fotoBlock.resizeFotoRenameBlock();
+    }
 }
 
 //*************     Видео-блок     *****************

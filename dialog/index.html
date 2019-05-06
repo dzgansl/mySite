@@ -269,7 +269,7 @@
                     <!--option value="id камеры">camera 1</option-->
                 </select>
             </label>
-            <label title="Динамики" hidden><img src="image/camera.png">
+            <label title="Динамики" style="display: none;"><img src="image/camera.png">
                 <select id="audiooutput">
                     <!--option value="id камеры">camera 1</option-->
                 </select>
@@ -360,8 +360,12 @@
                     </div>
                     <div>
                         <button id="fotoMakeMain" title="сделать основной" disabled>Основная</button>
-                        <button id="fotoTrim" style="display: none">Обрезать</button>
-                        <button id="fotoDelete" disabled>Удалить</button>
+                        <button id="fotoPlus">+</button>
+                        <button id="fotoMinus" disabled>-</button>
+                        <button id="fotoTrim" disabled title="Обрезать"><img src="image/trim.png" class="height100"></button>
+                        <!--button id="fotoRefresh" title="Обновить"><img src="image/refresh.png" class="height100"></button-->
+                        <button id="fotoRename" title="Переименовать"><img src="image/rename.png" class="height100"></button>
+                        <button id="fotoDelete" title="Удалить"><img src="image/delete.png" class="height100"></button>
                     </div>
                     <div style="height: calc(var(--wHello) * 0.75 - 60px); overflow: auto">
                         <img id="myFoto" style="width: 100%">
@@ -396,9 +400,14 @@
             </div>
         </section>
     </div>
+    <div id="fotoRenameBlock" hidden class="selectNone">
+        <input type="text" name="editName">
+        <span id="fileRenameType"></span>
+        <div id="fileRenameCancel">x</div>
+        <div id="fileRenameOk">ok</div>
+    </div>
     <div id="modal" hidden></div>
     <div id="messageOk" hidden>Все OK</div>
-
     <script src="../nsllib.js"></script>
     <script src="dialogs.js"></script>
     <script src="exchange.js"></script>

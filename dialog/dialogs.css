@@ -58,6 +58,7 @@ button {cursor: pointer}
 button[disabled] {cursor: default}
 
 .width100 {width: 100%}
+.height100 {height: 70%}
 /****************** Главны заголовок *******************/
 #headDialogs {
     height: var(--hHead);
@@ -485,13 +486,13 @@ calc(var(--wHello) - 70px);
     display: inline-block;
     border-color: #eee;
     color: #242;
-    background-color: buttonface;;
+    background-color: buttonface;
     text-align: left;
     cursor: pointer;
     width: calc(33% - 3px);
     line-height: 28px; /* calc(var(--fontSize) * 2);*/
     box-sizing: border-box;
-    padding-left: 5px;
+    padding-left: 2px;
     border-radius: 5px;
 }
 #countDownload {
@@ -736,7 +737,7 @@ calc(var(--wHello) - 70px);
 
 /************************ Персональные данные ******************/
 #privateCut {
-    float: left;display: inline-block; width: 80px; margin-right: 10px;
+    float: left;display: inline-block; width: calc(var(--hHead) * 2); margin-right: 10px;
 }
 .cutPerson {
     margin: 1px 0; width: 100%;
@@ -747,14 +748,14 @@ calc(var(--wHello) - 70px);
     cursor: pointer;
 }
 .privateBlock {
-    width: calc(100% - 90px); display: inline-block;
+    width: calc(100% - var(--hHead) * 2 - 10px); display: inline-block;
 }
 #person span, #ident span {
     box-sizing: border-box; padding: 5px 0 0 5px; width: 10ch;display: inline-block;
 }
 
 #person input, #ident input {
-    width: calc(100% - 12ch);
+    width: calc(100% - 13ch);
 }
 #person button, #ident button {
     float: right; margin: 10px; height: 28px;
@@ -776,7 +777,7 @@ calc(var(--wHello) - 70px);
 #fotoList>label {
     padding: 5px;
     display: block;
-    font-size: 13px;
+    font-size: calc(var(--fontSize) * 0.9);
     border-top: #888888 dashed 1px ;
 }
 #fotoList:hover {
@@ -785,6 +786,31 @@ calc(var(--wHello) - 70px);
 #foto button {
     height: 24px;
     margin: 5px 0;
+    vertical-align: top;
+    border-radius: 10px;
+    font-weight: 500;
+}
+#fotoRenameBlock {
+    position: fixed;
+    z-index: 9003;
+    background-color: #bbddff;
+    top: 0px;
+    left: 0px;
+    box-sizing: border-box;
+}
+#fotoRenameBlock>input {
+    width: calc(100% - 11ch);
+    z-index: 9003;
+}
+#fotoRenameBlock>div {
+    display: inline-block;
+    float: right;
+    padding: 0 3px;
+    border: 1.5px outset buttonface;
+    height: 100%;
+    cursor: pointer;
+    background-color: buttonface;
+    box-sizing: border-box;
 }
 /****************** Поиск контактов ***************************/
 #find {

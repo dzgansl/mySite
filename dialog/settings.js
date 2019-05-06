@@ -541,8 +541,13 @@ function FotoBlock() {
     var img = document.getElementById('myFoto');
     var fotoDelete = document.getElementById('fotoDelete');
     var fotoTrim = document.getElementById('fotoTrim');
+    var fotoPlus = document.getElementById('fotoPlus');
+    var fotoMinus = document.getElementById('fotoMinus');
+    var fotoBlock = this;
+    var zoom = 1;
     wsSend({get: 'foto'});
-    img.src = user.foto;
+    var dataV = new Date().toLocaleTimeString().replace(/:/g,'');
+    img.src = user.foto + '?' + dataV;
     // Получение списка фотографий от сервера
     this.loadFoto = function (q) {
         if (!q.result)
@@ -554,8 +559,9 @@ function FotoBlock() {
             if (q.files.length===0) {
                 ul.insertAdjacentHTML('beforeend','<li>Список фотографий пуст</li>');
             } else {
+                var dataV = new Date().toLocaleTimeString().replace(/:/g,'');
                 q.files.forEach(function (file) {
-                    ul.insertAdjacentHTML('beforeend','<li title="'+file+'">'+nameFile(file)+'</li>');
+                    ul.insertAdjacentHTML('beforeend','<li title="'+file+'" data-v="' + dataV + '">'+nameFile(file)+'</li>');
                     if (file == user.foto) {
                         curfoto = ul.lastElementChild;
                         mainfoto = curfoto;
@@ -625,11 +631,12 @@ function FotoBlock() {
         }
         else {
             query = waitSend.pop();
+            if (zoom != 1) noZoom();
+            var dataV = new Date().toLocaleTimeString().replace(/:/g,'');
             if (!query.exist) {
                 if (curfoto) curfoto.style.backgroundColor = '';
-                ul.insertAdjacentHTML('beforeend', '<li title="' + q.url + '" style="background-color: #bbddff;">' + nameFile(q.url) + '</li>');
+                ul.insertAdjacentHTML('beforeend', '<li title="' + q.url + '" data-v="'+dataV+'" style="background-color: #bbddff;">' + nameFile(q.url) + '</li>');
                 curfoto = ul.lastElementChild;
-                img.src = q.url;
                 fotoMakeMain.disabled = fotoDelete.disabled = false;
             } else {
                 if (curfoto && curfoto.title !== q.url) {
@@ -637,27 +644,36 @@ function FotoBlock() {
                     if (elem) {
                         curfoto.backgroundColor = '';
                         curfoto = elem;
+                        curfoto.dataset.v = dataV;
                         curfoto.backgroundColor = '#bbddff';
                     } else {
                         console.log('Не найден обновляемый файл '+ q.url + ' в списке');
                         return;
                     }
                 }
-                if ('dataV' in curfoto) curfoto.dataV++; else curfoto.dataV=1;
                 fotoMakeMain.disabled = fotoDelete.disabled = (curfoto == mainfoto);
-                img.src = q.url + '?'+curfoto.dataV
             }
+            img.src = q.url + '?'+curfoto.dataset.v
         }
     }
-    // Перемещение по списку
+    // ********************   Перемещение по списку  *******************
     ul.onclick = function (e) {
-        if (curfoto == e.target) return false;
-        if (e.target.nodeName !== 'LI') return;
+        if (curfoto == e.target) {
+            fotoRefresh();
+            return;
+        }
         if (curfoto) curfoto.style.backgroundColor = '';
         curfoto = e.target;
         curfoto.style.backgroundColor = '#bbddff';
-        img.src=curfoto.title + ('dataV' in curfoto ? '?'+curfoto.dataV : '');
+        img.src=curfoto.title + '?'+ curfoto.dataset.v;
         fotoMakeMain.disabled = fotoDelete.disabled = (curfoto==mainfoto);
+        if (zoom !=1) noZoom();
+    }
+    ul.ondblclick = function(e) {
+        if (curfoto == e.target) {
+            document.getElementById('fotoRename').onclick();
+        }
+        return false;
     }
     // Запрос серверу на изменение основного фото
     fotoMakeMain.onclick = function () {
@@ -685,50 +701,120 @@ function FotoBlock() {
         if (curfoto.textContent == q.file) {
             curfoto.remove();
             curfoto = mainfoto;
+            if (zoom != 1) noZoom();
             if (mainfoto) {
                 curfoto.backgroundColor='#bbddff';
                 fotoMakeMain.disabled = fotoDelete.disabled = true;
-                img.src = curfoto.title + ('dataV' in curfoto ? '?'+curfoto.dataV : '');
+                img.src = curfoto.title + '?' + curfoto.dataset.v;
             } else {
-                img.src = user.foto;
+                var dataV = new Date().toLocaleTimeString().replace(/:/g,'');
+                img.src = user.foto + '?' + dataV;
             }
         }
     }
     // После загрузки фото определяем видимость кнопки "Обрезать"
     img.onload = function () {
-        fotoTrim.style.display = (this.parentElement.scrollHeight === this.parentElement.clientHeight) ? 'none' : 'inline-block';
+        fotoTrim.disabled = this.parentElement.scrollHeight === this.parentElement.clientHeight;
     }
     // Обрезка фотографии
     fotoTrim.onclick = function () {
         // Определим смещение сверху и зафиксируем текущую ширину
-        var top = img.parentElement.scrollTop;
-        var width0 = img.width;
+        var pe = img.parentElement;
+        var top = pe.scrollTop;
+        var left = pe.scrollLeft;
+        var width0 = pe.clientWidth * zoom;
         //var height0 = img.height;
         var width1 = img.naturalWidth;
         //var height1 = img.naturalHeight;
         var div = width1/width0;
-        /*var canvas = document.getElementById('settingsMedia').querySelector('canvas');
-        canvas.width = width1;
-        canvas.height = width1*0.75;
-        try {
-            var canvas2d = canvas.getContext('2d');
-            canvas2d.drawImage(img, 0, top*div, canvas.width, canvas.height, 0, 0, canvas.width, canvas.height);
-            canvas.toBlob(function (file) {
-                waitSend.push({send: 'file', file: file, action: 'loadFoto'});
-                wsSend({send: 'file', file: curfoto.textContent});
-            },'image/png');
-        } catch (err) {
-            console.log('Error: ', err);
-        }*/
-        wsSend({action:'trimFoto', file: curfoto.textContent, width: width1, top: Math.round(top*div)});
+        var query = {action:'trimFoto', file: curfoto.textContent,
+            left: Math.round(left*div), top: Math.round(top*div)};
+        query.width = Math.round(width1/zoom);
+        query.height = Math.min(Math.round(query.width*0.75), img.naturalHeight-query.top);
+        wsSend(query);
     }
     this.processTrimFoto = function(q) {
         if (!q.result) {
             messageVisible(q.comment,3000, true);
         } else {
-            if ('dataV' in curfoto) curfoto.dataV++; else curfoto.dataV=1;
+            noZoom();
+            curfoto.dataset.v = new Date().toLocaleTimeString().replace(/:/g,'');
             fotoMakeMain.disabled = fotoDelete.disabled = (curfoto == mainfoto);
-            img.src = curfoto.title + '?'+curfoto.dataV
+            img.src = curfoto.title + '?'+curfoto.dataset.v
+        }
+    }
+    // обработка нажатия на '+' увеличение
+    fotoPlus.onclick = function() {
+        zoom = zoom+0.05;
+        img.style.width = zoom*100 + "%";
+        fotoMinus.disabled = false;
+        fotoTrim.disabled = false;
+    }
+    // обработка нажатия на '-' уменьшение
+    fotoMinus.onclick = function() {
+        zoom = zoom-0.05;
+        if (zoom > 1) img.style.width = zoom*100 + "%";
+        else noZoom();
+    }
+    // отключить увеличение
+    function noZoom() {
+        img.style.width = '100%';
+        zoom = 1;
+        fotoMinus.disabled = true;
+        fotoTrim.disabled = img.parentElement.scrollHeight === img.parentElement.clientHeight;
+    }
+    // обработка нажатия обновить
+    function fotoRefresh () {
+        noZoom();
+        curfoto.dataset.v = new Date().toLocaleTimeString().replace(/:/g,'');
+        img.src = curfoto.title + '?'+curfoto.dataset.v;
+        return false;
+    }
+
+    // Обработка нажатия Переименование фото
+    document.getElementById('fotoRename').onclick = function () {
+        var block = document.getElementById('fotoRenameBlock');
+        fotoBlock.resizeFotoRenameBlock();
+        modal.style.zIndex = 9002;
+        var pos = curfoto.textContent.lastIndexOf('.');
+        block.firstElementChild.value = curfoto.textContent.substr(0, pos);
+        block.querySelector('#fileRenameType').textContent = curfoto.textContent.substr(pos);
+        block.hidden = false;
+        block.firstElementChild.autofocus = true
+    }
+    this.resizeFotoRenameBlock = function () {
+        var rec = curfoto.getBoundingClientRect();
+        var block = document.getElementById('fotoRenameBlock');
+        block.style.top = rec.top+'px'; //
+        block.style.left = rec.left+'px';
+        block.style.height = rec.height+'px';
+        block.style.width = rec.width+'px';
+    }
+    // Обработка нажатия отмены переименования
+    document.getElementById('fileRenameCancel').onclick = function () {
+        document.getElementById('fotoRenameBlock').hidden = true;
+        modal.style.zIndex=9000;
+    }
+
+    // Обрабатывается нажатие OK - запрос переименования
+    document.getElementById('fileRenameOk').onclick = function () {
+        var block = document.getElementById('fotoRenameBlock');
+        var newName = block.firstElementChild.value + block.querySelector('#fileRenameType').textContent;
+        if (curfoto.textContent == newName) {
+            document.getElementById('fileRenameCancel').onclick();
+            return false;
+        }
+        wsSend({action:'renameFile', file: curfoto.textContent, newName: newName});
+    }
+    // Отает на запрос переименования
+    this.processRenameFile = function(q) {
+        if (!q.result) {
+            messageVisible(q.comment,5000, true);
+        } else {
+            messageVisible('Переименование '+q.file+' на ' + q.newName + ' выполнено успешно',3000, false);
+            curfoto.textContent = q.newName;
+            curfoto.title = curfoto.title.substr(0,curfoto.title.length - q.file.length) + q.newName;
+            document.getElementById('fileRenameCancel').onclick();
         }
     }
 }
