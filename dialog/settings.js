@@ -630,7 +630,7 @@ function FotoBlock() {
     // Передача файла на сервер
     this.processFile = function (q) {
         var i = waitSend.length-1;
-        console.log(q);
+        //console.log(q);
         if (i<0) return;
         if (!q.result) {
             messageVisible(q.comment,3000, true);

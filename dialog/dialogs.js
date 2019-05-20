@@ -15,7 +15,6 @@ const modal         = document.getElementById('modal');
 
 const userPanels    = document.getElementById('userPanels');
 const dialogsSettings = document.getElementById('dialogsSettings');
-//const exchangeKey  = document.getElementById('exchangeKey');
 const dialogsClose  = document.getElementById('dialogsClose');
 const screenDemo    = document.getElementById('screenDemo');
 const dialogsFone   = document.getElementById('dialogsFone');
@@ -37,14 +36,13 @@ const localFoto     = localVideoBlock.children[1];
 const hello         = document.getElementById('hello');
 const registration  = document.getElementById('registration');
 const restore       = document.getElementById('restore');
-const helloForm     = document.getElementById('helloForm');
 const savepass      = document.getElementById('savepass');
 const emailBlock    = document.getElementById('emailBlock');
 const identCome     = document.getElementById('identCome');
 const identExit     = document.getElementById('identExit');
 /*     Константы настроек  */
 const settingsBlock = document.getElementById('settingsBlock');
-const setVideoDevice= document.getElementById('setVideoDevice');// checked:
+const setVideoDevice= document.getElementById('setVideoDevice');
 
 
 const videoinput  = document.getElementById('videoinput');
@@ -88,9 +86,6 @@ var screenVideoStream = null;   // Видеопоток с экрана поль
 var screenSender = null;
 var mediaDevice = {audio: false, video: false};
 var isMediaDevice = {audio: false, video: false};
-//var videoConstraints = {value: false};
-//var audioConstraints = {value: false};
-//var heightVideo = 0;
 
 var data = {};
 var writes, writesTimer, writesMessage, writesUser, writesDelay;
@@ -114,10 +109,6 @@ var settings = {
     noiseSuppression: true,     //  подавление шума
     videoFull: false            //  изображение пользователя на весь экран
 };
-/*
-var lengthMessage = 0;
-var textareaHidht = 25;         // Высота области ввода в пикселях
-*/
 var textareaMaxHidht = 100;     // Максимальная высота области ввода
 var webSocket = wsConnect();    //  Подключение к webSocket серверу
 var settingsChange = false;
@@ -136,7 +127,6 @@ dragAnObject(settingsBlock, settingsBlock.firstElementChild);
 dragAnObject(hello, hello.firstElementChild);
 
 idUser = getPropertyFromCookie('idUser');   // Чтение в куках кода пользователя
-
 
 var waitSend =[];               //массив отложенных запросов
 if (idUser !== undefined) {
@@ -252,20 +242,19 @@ function wsConnect() {
             else if (q.command === "Устройство") medioDeviceEx(q);
 
         } else if ('candidate' in q) {
-            console.log("Получил ICECandidate от удаленного партнера.");
+            //console.log("Получил ICECandidate от удаленного партнера.");
             peerConn.addIceCandidate(new RTCIceCandidate(q.candidate));
         } else if ('candidate2' in q) {
-            console.log("Получил ICECandidate-2 от удаленного партнера.");
+            //console.log("Получил ICECandidate-2 от удаленного партнера.");
             pcIn.addIceCandidate(new RTCIceCandidate(q.candidate2));
         } else if ('candidateSend' in q) {
             exchange.candidateSend(q)
             //console.log("Получил ICECandidate-Send от удаленного партнера.");
-            //sendPC.addIceCandidate(new RTCIceCandidate(q.candidateSend));
         /*} else if ('sdp' in q) {
-            console.log("Получил SDP от удаленного партнера.");
+            //console.log("Получил SDP от удаленного партнера.");
             peerConn.setRemoteDescription(new RTCSessionDescription(q.sdp));
         } else if ('closeConnection' in q) {
-            console.log("Получен сигнал «закрыть вызов» от удаленного партнера.");
+            //console.log("Получен сигнал «закрыть вызов» от удаленного партнера.");
             endCall(q);*/
         } else {
             var err='не найден обработчик для запроса: ';
@@ -279,7 +268,6 @@ function wsConnect() {
 // отправка запросов на ws-сервер
 function wsSend(obj) {
     var str= JSON.stringify(obj);
-    //console.log(str);
     webSocket.send(str);
 }
 
@@ -369,8 +357,6 @@ function processHello(q) {
 
     // Отправим запрос на получение списка пользователей для общения
     wsSend({get: 'dialogUsers'});
-    /*if (idUser === idMainUser) wsSend({get: 'dialogUsers', select: 'all'});
-    else wsSend({get: 'dialogUsers', idUsers: idMainUser});*/
 }
 // обработка данных ответа сервера на восстановление пароля
 function processRestore() {
@@ -523,11 +509,6 @@ function loadUserDialogs(q) {
         // показать содержимое последнего диалога
         pressDialog(idxDialog)
     }
-
-    /*
-    wsSend({
-        get: 'dialog',
-        idDialog: curDialog.idDialog});*/
 }
 // загрузка диалога
 function loadDialog(q) {
@@ -1388,7 +1369,7 @@ function peerConnection() {
 }
 // отправляем ice candidate собеседнику
 function onIceCandidateHandler(evt) {
-    console.log('onIceCandidateHandler: отправляем ice candidate собеседнику');
+    //console.log('onIceCandidateHandler: отправляем ice candidate собеседнику');
     if (!evt || !evt.candidate) return;
     wsSend({idUser: talkIdUser, candidate: evt.candidate });
 }
@@ -1420,15 +1401,15 @@ function onAddStreamHandler(evt) {
 }
 // Обработка команды Предложение3
 function commandOffer(q) {
-    console.log("Получил SDP Offer от демонстратора.");
+    //console.log("Получил SDP Offer от демонстратора.");
     peerConn.setRemoteDescription(q.sdp)
         .then(function() {
-            console.log('setRemoteDescription complete');
-            console.log('pc2 createAnswer start');
+            //console.log('setRemoteDescription complete');
+            //console.log('pc2 createAnswer start');
             return peerConn.createAnswer()
         })
         .then(function (desc) {
-            console.log('pc2 setLocalDescription start');
+            //console.log('pc2 setLocalDescription start');
             wsSend({idUser: talkIdUser, command: 'Ответ', sdp: desc});
             peerConn.setLocalDescription(desc);
         })
@@ -1455,7 +1436,7 @@ function createAndSendOffer() {
 }
 // Обработка команды Ответ
 function commandAnswer(q) {
-    console.log("Получил sdp Answer от удаленного партнера.");
+    //console.log("Получил sdp Answer от удаленного партнера.");
     peerConn.setRemoteDescription(q.sdp); //(new RTCSessionDescription(q.sdp));
 }
 //Нажата кнопка положить трубку
@@ -1606,35 +1587,24 @@ screenDemo.onclick = function(ev) {
 };
 
 function screenDemoRemove(){
-    console.log('Нажата клавиша Завершить демонстрация экрана');
+    //console.log('Нажата клавиша Завершить демонстрация экрана');
     wsSend({idUser: talkIdUser, command: 'Сброс2'});
-    console.log('Отправлена команда Сброс 2');
+    //console.log('Отправлена команда Сброс 2');
     pcIn.close();
     pcIn=null;
     screenDemo.children[0].src='image/screenYes.png';
     screenVideoStream = null;
 }
 function screenDemoEnd() {
-    console.log('Порлучена команда Сброс 2');
+    //console.log('Порлучена команда Сброс 2');
     screenBlock.hidden = true;
-    //localVideoBlock.style.display = 'inline-block';
-    //talkUsers[0].videoBlock.display = 'inline-block';
-    /*screen.srcObject = null;
-    if (pcIn) {
-        try {
-            pcIn=close();
-        } catch (err) {
-            console.log(err)
-        }
-        pcIn=null;
-    }*/
     pcIn=null;
     screen.srcObject = null;
     resize();
 }
 
 function screenDemoAdd() {
-    console.log('Нажата клавиша Начать демонстрацию экрана');
+    //console.log('Нажата клавиша Начать демонстрацию экрана');
     navigator.mediaDevices.getDisplayMedia({video: {cursor: 'motion', displaySurface: 'application'}})
         .then(function (stream) {
             screenVideoStream = stream;
@@ -1643,14 +1613,14 @@ function screenDemoAdd() {
             pcIn.onicecandidate = onIceCandidate;
             pcIn.addTrack(track, screenVideoStream);
             screenDemo.children[0].src = 'image/screenNo.png';
-            console.log('Определен peer демонстратора');
+            //console.log('Определен peer демонстратора');
             pcIn.createOffer({offerToReceiveAudio: 0, offerToReceiveVideo: 1})
                 .then(function (offer) {
                     return pcIn.setLocalDescription(offer);
                 })
                 .then(function () {
                     wsSend({idUser: talkIdUser, sdp: pcIn.localDescription, command: 'Предложение2'});
-                    console.log("Отправлена команда Предложение2");
+                    //console.log("Отправлена команда Предложение2");
                 })
                 .catch(function (err) {
                     console("Ошибка createOffer: ", err);
@@ -1670,23 +1640,17 @@ function screenDemoAdd() {
 }
 // отправляем ice candidate собеседнику
 function onIceCandidate(evt) {
-    //console.log('onIceCandidate: отправляем ice candidate2 собеседнику')
     if (!evt || !evt.candidate) return;
     wsSend({idUser: talkIdUser, candidate2: evt.candidate });
 }
 // Обработка команды Предложение2
 function command2Offer(q) {
-    console.log("Получил SDP 2 Offer от демонстратора.");
+    //console.log("Получил SDP 2 Offer от демонстратора.");
     pcIn = new RTCPeerConnection(peerConnCfg);
     pcIn.onicecandidate = onIceCandidate;
     pcIn.ontrack = async function (evt) {
-        //localVideoBlock.style.display = 'none';
-        //talkUsers[0].videoBlock.display = 'none';
         screen.srcObject = evt.streams[0];
         screenBlock.hidden = false;
-        //dialogHideShow.style.display = 'inline-block';
-        //if (leftBlockVisible) leftBlockSwith(false);
-        //if (panelVisible) dialogVisible(false);
         try {
             await screen.play();
             resize();
@@ -1696,15 +1660,14 @@ function command2Offer(q) {
             screenBlock.hidden = true;
         }
     };
-    //console.log('Определен peer зрителя')
     pcIn.setRemoteDescription(q.sdp)
         .then(function() {
-            console.log('setRemoteDescription complete');
-            console.log('pc2 createAnswer start');
+            //console.log('setRemoteDescription complete');
+            //console.log('pc2 createAnswer start');
             return pcIn.createAnswer()
         })
         .then(function (desc) {
-            console.log('pc2 setLocalDescription start');
+            //console.log('pc2 setLocalDescription start');
             wsSend({idUser: talkIdUser, command: 'Ответ2', sdp: desc});
             pcIn.setLocalDescription(desc);
         })
@@ -1713,7 +1676,7 @@ function command2Offer(q) {
 }
 // Обработка команды Ответ2
 function command2Answer(q) {
-    console.log("Получил sdp Answer от удаленного партнера.");
+    //console.log("Получил sdp Answer от удаленного партнера.");
     pcIn.setRemoteDescription(new RTCSessionDescription(q.sdp));
 }
 

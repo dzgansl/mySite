@@ -167,10 +167,6 @@ function Exchange() {
     function fileSendStart(e) {
         sendFile = e.target.parentElement;
         fileSend();
-        /*if (sendPC) {
-            if (sendChannel.readyState == 'open') fileSend();
-            else sendChannel = sendPC.createDataChannel('dataChannel');
-        }*/
     }
     sendFilesButton.onclick = sendAllFiles;
     function sendAllFiles() {
@@ -231,7 +227,7 @@ function Exchange() {
             sendPC = new RTCPeerConnection();
             sendPC.onicecandidate = onSendIceCandidate;
             sendPC.addEventListener('datachannel', onDataChannel);
-            console.log('Определен peer получателя')
+            //console.log('Определен peer получателя')
         } catch (err){
             wsSend({idUser: sendIdUser, command: 'СбросОбмен', comment: err.message}) ;
             console.log("Ошибка соединения: ", err);
@@ -239,11 +235,11 @@ function Exchange() {
         }
         sendPC.setRemoteDescription(q.sdp)
             .then(function() {
-                console.log('setRemoteDescription получателя complete');
+                //console.log('setRemoteDescription получателя complete');
                 return sendPC.createAnswer();
             })
             .then(function (desc) {
-                console.log('setLocalDescription получателя start');
+                //console.log('setLocalDescription получателя start');
                 wsSend({idUser: sendIdUser, command: 'ОтветSend', sdp: desc});
                 sendPC.setLocalDescription(desc);
             })
@@ -282,12 +278,12 @@ function Exchange() {
     }
 
     this.candidateSend = function (q) {
-        console.log("Получил ICECandidate-Send от удаленного партнера.");
+        //console.log("Получил ICECandidate-Send от удаленного партнера.");
         sendPC.addIceCandidate(new RTCIceCandidate(q.candidateSend));
     }
     // Обработка на стороне отправителя команды Ответ
     this.commandAnswer = function (q) {
-        console.log("Получил sdp Answer от получателя.");
+        //console.log("Получил sdp Answer от получателя.");
         try {
             sendPC.setRemoteDescription(new RTCSessionDescription(q.sdp));
             modal.hidden = false;
@@ -302,7 +298,6 @@ function Exchange() {
     // При открытии канала связи и при наличии файла для обмена - начинаем обмен
     function onOpenDataChanel() {
         console.log('Канал передачи данных открыт'+ (sendFile ? ' для '+sendFile.file.name : ''));
-        //if (sendFile) fileSend();
     }
     // Обработка события закрытия канала
     function onCloseDataChanel() {
@@ -316,7 +311,7 @@ function Exchange() {
         var text = JSON.stringify({type:'file',name: file.name, size: file.size});
         try {
             sendChannel.send(text);
-            console.log('Передан заголовок: '+text);
+            //console.log('Передан заголовок: '+text);
         } catch (error) {
             console.log('Ошибка передачи заголовка: ', error);
             return false;
