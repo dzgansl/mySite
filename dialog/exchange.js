@@ -33,7 +33,14 @@ function Exchange() {
     var receiveFile = null;     // Принимаемый файл {name, size, offset}
     var sizeSendBlock = 16384;  //131072; // Размер блока передаваемых данных
     var receiveElement = null;
-
+    //прермещение окна
+    dragAnObject(exchangeBlock, exchangeBlock.firstElementChild);
+    // Чтение данных по обмену, пока  только idUser
+    this.getData = function () {
+        return {
+            idUser: sendIdUser
+        }
+    }
 
     this.visible = function () {
         if (sendIdUser && sendPC) {

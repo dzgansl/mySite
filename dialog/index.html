@@ -72,8 +72,8 @@
 
                 <div class="userVideoBlock">
                     <div class="videoHeader">
-                        <!--button>&#8414;</button>
-                        <button>&ndash;</button-->
+                        <button style="display: none">&#8414;</button>
+                        <!--button>&ndash;</button-->
                         <img src="image/soundOn.png" class="imgAudio">
                         <img src="image/eyeOpen.png" class="imgVideo" onmouseenter="onResolution(event)">
                         <div class="videoHeadTxt">fullName</div>
@@ -315,11 +315,11 @@
         </section>
         <ul type="none" id="settingsOther" class="selectNone" hidden>
             <!--div class="cleanBlock" onclick="modalClean">&times;</div-->
-            <li><input type="checkbox" class="set" id="saveSettingsSwith" checked><span>Сохранять настройки</span></li>
-            <li><input type="checkbox" class="set" id="setVideoDevice" checked><span>Запрашивать видео-устройства при начале аудио-общения, для возможности включить видео</span></li>
-            <li><input type="checkbox" class="set" id="freeDevices" checked><span>Освобождать медиа-устройства после голосового общения</span></li>
-            <li><img src="image/trashYes.png" class="set" id="trashClear"><span>Очистить данные пользователя, кроме настроек</span></li>
-            <li><img src="image/trashYes.png" class="set" id="settingsClearSwith"><span>Очистить настройки пользователя</span></li>
+            <li><label><input type="checkbox" class="set" id="saveSettingsSwith" checked><span>Сохранять настройки</span></label></li>
+            <li><label><input type="checkbox" class="set" id="setVideoDevice" checked><span>Запрашивать видео-устройства при начале аудио-общения, для возможности включить видео</span></label></li>
+            <li><label><input type="checkbox" class="set" id="freeDevices" checked><span>Освобождать медиа-устройства после голосового общения</span></label></li>
+            <li><label id="trashClearBlock"><img src="image/trashYes.png" class="set" id="trashClear"><span>Очистить данные пользователя, кроме настроек</span></label></li>
+            <li><label id="settingsClearBlock"><img src="image/trashYes.png" class="set" id="settingsClearSwith"><span>Очистить настройки пользователя</span></label></li>
 
         </ul>
         <section id="settingsPersonal" hidden>

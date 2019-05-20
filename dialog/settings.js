@@ -1,7 +1,5 @@
 'use strict';
 /************          Блок настройки        ************/
-const settingsBlock = document.getElementById('settingsBlock');
-
 var settingsMedia = null;
 var settingsOther = null;
 var personBlock = null;
@@ -138,7 +136,6 @@ function SettingsMedia() {
     freeDevices.checked = settings.freeDevices;
     var elem = resolutions.querySelector('input[value="'+settings.videoFormat+'"]');
     if (elem) elem.checked=true;
-
     // Если медиа-поток уже существует и активен - переносим его в окно настроек
     if (localVideoStream && localVideoStream.active) {
         var mTrack = localVideoStream.getTracks();
@@ -175,6 +172,16 @@ function SettingsMedia() {
                 localVideoStream = stream;
                 settingsVideo.srcObject = localVideoStream;
                 settingsVideo.volume = speakVolume.value;
+                if (talkState !== 'none' && peerConn) {
+                    peerConn.getSenders().forEach((track) => {peerConn.removeTrack(track);});
+                    localVideo.srcObject = stream;
+                    stream.getTracks().forEach((track) => {
+                        peerConn.addTrack(track, stream);
+                        if (track.kind === 'audio' ) dialogsFoneSwitch.onclick(true);
+                        else if(track.kind === 'video') dialogsVideoSwitch.onclick(true);
+                    })
+                    createAndSendOffer();
+                }
                 setTimeout(function() {
                     resolutionVisual.textContent = settingsVideo.videoWidth + 'x' + settingsVideo.videoHeight;
                     getsetAudio(localVideoStream.getAudioTracks()[0]);
@@ -192,8 +199,16 @@ function SettingsMedia() {
     //Отключение медиаустройств
     resolutions.children[1].onclick = function () {
         if (localVideoStream) {
-            var tracks=localVideoStream.getTracks();
-            tracks.forEach(function (track) {track.stop();});
+            if (talkState !== 'none' && peerConn) {
+                peerConn.getSenders().forEach((track) => {peerConn.removeTrack(track);});
+            }
+            localVideoStream.getTracks().forEach((track) => {
+                if (track.enabled) {
+                    if (track.kind === 'audio') dialogsFoneSwitch.onclick(false);
+                    else if(track.kind === 'video') dialogsVideoSwitch.onclick(false);
+                }
+                track.stop();
+            });
             settingsVideo.srcObject = null;
             localVideoStream = null;
             localVideo.srcObject = null;
@@ -378,7 +393,7 @@ function SettingsOther() {
         changeSettings('freeDevices', this.checked);
     }
     // Настройки - очистка данных авторизации
-    trashClear.onclick = function (ev) {
+    trashClearBlock.onclick = function (ev) {
         if (!settings.trash) return;
         deletePropertyFromCookie('name');
         deletePropertyFromCookie('idUser');
@@ -387,7 +402,7 @@ function SettingsOther() {
         trashClear.style.cursor = 'default';
     };
     // Настройки - очистка настроек
-    settingsClearSwith.onclick = function (ev) {
+    settingsClearBlock.onclick = function (ev) {
         deletePropertyFromCookie('settings');
         settingsSave = {};
         settingsClearSwith.src = 'image/trashNo.png';
@@ -670,7 +685,7 @@ function FotoBlock() {
         if (zoom !=1) noZoom();
     }
     ul.ondblclick = function(e) {
-        if (curfoto == e.target) {
+        if ((curfoto == e.target) && (curfoto != mainfoto)) {
             document.getElementById('fotoRename').onclick();
         }
         return false;
@@ -773,6 +788,10 @@ function FotoBlock() {
 
     // Обработка нажатия Переименование фото
     document.getElementById('fotoRename').onclick = function () {
+        if (curfoto == mainfoto) {
+            messageVisible('Основное фото переименовывать нельзя',3000,true);
+            return false;
+        }
         var block = document.getElementById('fotoRenameBlock');
         fotoBlock.resizeFotoRenameBlock();
         modal.style.zIndex = 9002;
@@ -896,7 +915,7 @@ function FindContact() {
     clearFindFields.onclick = function (e) {
         if (els.length>0) {
             for (var i=0; i<els.length; i++) {
-                elem=els[i];
+                var elem = els[i];
                 elem.firstElementChild.checked=false;
                 elem.firstElementChild.disabled=true;
                 elem.lastElementChild.value='';

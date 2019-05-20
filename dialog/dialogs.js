@@ -43,22 +43,27 @@ const emailBlock    = document.getElementById('emailBlock');
 const identCome     = document.getElementById('identCome');
 const identExit     = document.getElementById('identExit');
 /*     Константы настроек  */
-
-
+const settingsBlock = document.getElementById('settingsBlock');
 const setVideoDevice= document.getElementById('setVideoDevice');// checked:
+
 
 const videoinput  = document.getElementById('videoinput');
 const audioinput  = document.getElementById('audioinput');
-const audiooutput  = document.getElementById('audiooutput');
+const audiooutput = document.getElementById('audiooutput');
+
+const wLocalFree   = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--wLocalFree')); // ширина видеоокна в свободном формате;
+const wLeft = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--wLeft')); // ширина колонки котнактных лиц
+const wRignt = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--wRight')); // ширина отступа справа
+const hPanelMin =  parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hPanelMin')); // Минимальный размер опанели текстовых диалогов
+const months      = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
+const wsUrl       = 'wss://neshataev.ru:5822';    // url - webSocket
 
 var debug       = {i: 0};        // счетчик для отладки
 var socketOpen  = false; // Признак открытия webSocket
-var months      = ['января', 'февраля', 'марта', 'апреля', 'мая', 'июня', 'июля', 'августа', 'сентября', 'октября', 'ноября', 'декабря'];
 var idUser      = null;         // Код пользователя
 var idMainUser  = 2;            // Код администратора
 var user        = {};           // данные полоьзователя
 var error       = '';           // Текст сообщения об ошибке
-var wsUrl       = 'wss://neshataev.ru:5822';    // url - webSocket
 var chatActive  = false;        // Отображена форма чата
 var chatEmpty   = true;         // Нет данных в чате (переписка отсутствовала)
 var countNewMessage = 0;        // Пришло новое сообщение
@@ -70,12 +75,10 @@ var curDialog   = null;         // Ссылка на текущий диалог
 var idLastMessage = 0;          // id последнего прочитанного сообщения
 var idLast      = 0;            // id последнего сообщения в базе
 var timeOffset  = new Date().getTimezoneOffset();
-var wLeft = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--wLeft')); // ширина колонки котнактных лиц
-var wRignt = parseInt(getComputedStyle(document.documentElement).getPropertyValue('--wRight')); // ширина отступа справа
 var leftBlockVisible = true;
 var scrollTop   = null;         // скроллинг при раскрытии, закрытии диалога
 var panelVisible = true;        // Отображается панель текстовых диалогов
-var hPanelMin =  parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hPanelMin')); // Минимальный размер опанели текстовых диалогов
+var panelVisibleAuto = true;    // При медиадиалоге автоматически устанавливать наличие панели текстовых диалогов
 var peerConn    = null;         //
 var peerConnCfg = {'iceServers':
         [{'urls': 'stun:stun.services.mozilla.com'},{'urls': 'stun:stun.l.google.com:19302'}]
@@ -85,9 +88,9 @@ var screenVideoStream = null;   // Видеопоток с экрана поль
 var screenSender = null;
 var mediaDevice = {audio: false, video: false};
 var isMediaDevice = {audio: false, video: false};
-var videoConstraints = {value: false};
-var audioConstraints = {value: false};
-var heightVideo = 0;
+//var videoConstraints = {value: false};
+//var audioConstraints = {value: false};
+//var heightVideo = 0;
 
 var data = {};
 var writes, writesTimer, writesMessage, writesUser, writesDelay;
@@ -95,6 +98,7 @@ var talkState = 'none';         // Состояние диалога: none, bell
 var talkIdUser= null;           // id позвонившего
 var talkUsers = [];             // Участники диалога
 var talkMediaDevice = {audio: false, video: false};
+var videoFull = false;
 
 var pcIn = null;
 var pcOut = null;
@@ -107,13 +111,14 @@ var settings = {
     videoFormat: '320x240',     //  видео-разрешение
     autoGainControl: false,     //  автоматическая регулировка усиления
     echoCancellation: false,    //  подавление эха
-    noiseSuppression: true      //  подавление шума
+    noiseSuppression: true,     //  подавление шума
+    videoFull: false            //  изображение пользователя на весь экран
 };
 /*
 var lengthMessage = 0;
 var textareaHidht = 25;         // Высота области ввода в пикселях
-var textareaMaxHidht = 300;     // Максимальная высота области ввода
 */
+var textareaMaxHidht = 100;     // Максимальная высота области ввода
 var webSocket = wsConnect();    //  Подключение к webSocket серверу
 var settingsChange = false;
 var settingsJson = getPropertyFromCookie('settings'); // Восстановление сохраненных настроек
@@ -126,7 +131,9 @@ if (settingsJson) {
 var pos = settings.videoFormat.indexOf('x');
 settings.videoWidth = settings.videoFormat.substr(0,pos) - 0; //Разрешение - ширина
 settings.videoHeight = settings.videoFormat.substr(pos+1) - 0;  //Разрешение - высота
-
+//прермещение окна настройки
+dragAnObject(settingsBlock, settingsBlock.firstElementChild);
+dragAnObject(hello, hello.firstElementChild);
 
 idUser = getPropertyFromCookie('idUser');   // Чтение в куках кода пользователя
 
@@ -891,13 +898,14 @@ function userOnline(q)/* idUser, value: true||false */  {
                 //}
             }
 
-            // если это текущий собеседник - в заголовке поменять цвет
-            /*if (i===curUserIdx) {
-                headDialogsTxt.querySelector('span').style.color = q.value ?  '#087b52' : '#ff0000' ;
-            }*/
             break;
         }
     }
+    // если это текущий медиа-собеседник - положить трубку
+    if (!q.value && talkState !== 'none' && q.idUser == talkIdUser) {
+        endCall();
+    }
+    if (exchange && exchange.getData().idUser == q.idUser) exchange.close();
     /*  if (user == curUser) {
         if (q.value) writesOpen();
         else writesClose();
@@ -909,7 +917,7 @@ function textarea(e) {
         var h = 'data_h' in e.target ? e.target.data_h : e.target.clientHeight;
         e.target.style.height = ""; /* Reset the height*/
         var height = e.target.scrollHeight;
-        if (height > 100) height = 100;
+        if (height > textareaMaxHidht) height = textareaMaxHidht;
         if (h == height) {
             e.target.style.height = h+'px';
         } else {
@@ -925,70 +933,107 @@ function textarea(e) {
 }
 // Обработка изменения размера окна браузера
 window.onresize = resize;
+
 function resize() {
     // Определим отношения
-    var h = userPanels.clientHeight;
+    //var h = userPanels.clientHeight;
     //document.body.clientHeight - headDialogs.offsetHeight - 4;parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hFooter'));
+    var h0 = 0;
+    // Если медиа-общение
     if (!videoBlock.hidden) {
-        // Если отображение экрана - убрать панель и левый блок
-        if (!screenBlock.hidden) {
-            var sc = true;
-            if (panelVisible) dialogVisible(false);
-            if (leftBlockVisible) leftBlockSwith(false);
-        } else sc = false;
-        // Расчитываем размеры
-        var hwYa = localVideo.hidden ? localFoto.scrollHeight / localFoto.scrollWidth :
-            (localVideo.scrollHeight / localVideo.scrollWidth);
-        var hwHe = talkUsers[0].video.hidden ?
-            talkUsers[0].fotoBlock.scrollHeight / talkUsers[0].fotoBlock.scrollWidth :
-            (talkUsers[0].video.scrollHeight / talkUsers[0].video.scrollWidth);
-        var w = document.body.clientWidth;
-        var w0 = leftBlockVisible ? w - wLeft : w;
-        // Если убран низ и не отображен экран - возможно в две строки
-        // Определяем количество видео строк
-        var countStr = 1;
-        if (!sc && !panelVisible) {
-            // Расчитаем максимальную ширину при отображении в две строки:
-            var w1 = (h - 50) / (hwYa + hwHe)
-            if (w1 > w0 / 2) countStr = 2;
-        }
-        if (countStr == 2) {
-            localVideoBlock.style.width = w1 + 'px';
-            talkUsers[0].videoBlock.style.width = w1 + 'px';
-        }
-        else {
-            localVideoBlock.style.width = '';
-            talkUsers[0].videoBlock.style.width = '';
+        var w0 = document.body.clientWidth - (leftBlockVisible ? wLeft : 0) - 25;
+        var h0 = userPanels.clientHeight - (panelVisible && !panelVisibleAuto ? hPanelMin : 0);
+        if (!screenBlock.hidden) {   // ********** если есть отображение экрана **************
+            var hwSc = screen.scrollHeight / screen.scrollWidth;
+            w1 = Math.floor(h0 / hwSc);
+            if (w1 > w0) {
+                w1 = w0;
+                h1 = Math.ceil(w1 * hwSc);
+                h0 = h1 < h0 ? h0 - h1 : 0;
+            } else {
+                h1 = h0;
+                h0 = 0;
+            }
+            h0 = h1;
+            screen.style.width = w1 + 'px';
+            if (panelVisible && panelVisibleAuto && h0 < hPanelMin) {
+                dialogVisible(false);
+            }
         }
 
-        // расчитываем реальный размер видеоблока
-        if (panelVisible && ( h - hPanelMin < w0 / 4)) dialogVisible(false);
-        if (panelVisible) {
-            w1 = w0 / 2 - 1;
-            var hV = Math.max(hwHe, hwYa) * w1 + 24;
-            if (hV + hPanelMin > h) {
-                hV = h - hPanelMin;
-                var hP = hPanelMin;
-            } else {
-                hP = h-hV;
-            }
+        // максимальная ширина и высота области изображений с учетом заголовков
+        // Отношение высоты к ширине фото или видео собеседника (без заголовков)
+        if (talkUsers[0].video.hidden) {
+            var hwHe = talkUsers[0].fotoBlock.naturalHeight ? talkUsers[0].fotoBlock.naturalHeight / talkUsers[0].fotoBlock.naturalWidth : 0.75;
         } else {
-            hV = h;
-            hP = 0;
+            hwHe = talkUsers[0].video.videoHeight ? talkUsers[0].video.videoHeight / talkUsers[0].video.videoWidth : 0.75;
         }
-    } else {
-        hV = 0;
-        hP = h;
+        // Отношение высоты к ширине мое
+        if (localVideo.hidden) {
+            var hwYa = localFoto.naturalHeight ? localFoto.naturalHeight / localFoto.naturalWidth : 0.75;
+        } else {
+            hwYa = localVideo.videoHeight ? localVideo.videoHeight / localVideo.videoWidth : 0.75;
+        }
+        // Если изображения собеседника и мое равны по ширине
+        var col = 1;
+        if (!videoFull) {
+            if (localVideoBlock.classList.contains('freeVideoBlock')) {
+                localVideoBlock.classList.remove('freeVideoBlock');
+            }
+            var w1 = (h0-58) / (hwYa + hwHe);
+            // Определяем количество Колонок фото/видео
+            if (w1 > w0 / 2) {
+                // в одну колонку
+                col = 1;
+                if (w1 > w0) w1 = w0;
+                var h1 = Math.ceil(w1 * (hwYa + hwHe)) + 58;
+            } else {
+                // в 2 колонки
+                col = 2;
+                w1 = Math.floor(w0 / 2);
+                h1 = Math.ceil(w1 * Math.max(hwYa, hwHe)) + 29;
+            }
+            if (h1 > h0) h1 = h0;
+            localVideoBlock.style.width = w1 + 'px';
+        } else { // ************** Отображается собеседник на весь блок *************
+            w1 = Math.floor((h0 - 29) / hwHe);
+            var w2 = w0 - w1;
+            if (w2 <= 0) {
+                w1 = w0;
+                h1 = Math.ceil(w1 * hwHe) + 29;
+                w2 = Math.floor((h0 - h1 - 29) / hwYa);
+                if (w2 > w0) w2 = w0;
+                h1 = h1 + h0;
+            } else h1 = h0;
+
+            if (w2 >= wLocalFree) {
+                if (localVideoBlock.classList.contains('freeVideoBlock')) {
+                    localVideoBlock.classList.remove('freeVideoBlock');
+                }
+                localVideoBlock.style.width = w2 + 'px';
+            } else {
+                if (!localVideoBlock.classList.contains('freeVideoBlock')) {
+                    localVideoBlock.classList.add('freeVideoBlock');
+                    localVideoBlock.style.width = wLocalFree + 'px';
+                }
+            }
+        }
+        talkUsers[0].videoBlock.style.width = w1 + 'px';
+        h0 = h0 + h1;
+        var hV = videoBlock.scrollHeight;
+        if (col=2 && h0 > hV) hV = h0;
+        if (panelVisibleAuto && panelVisible && hV > userPanels.clientHeight - hPanelMin) dialogVisible(false);
+        else if (!panelVisible && panelVisibleAuto && userPanels.clientHeight - hV >= hPanelMin) dialogVisible(true);
+    }
+    var hP = userPanels.clientHeight - hV ;
+    if (curUser && panelVisible) {
+        curUser.panel.querySelector('.dialogs').style.height = (hP - curUser.panel.querySelector('.textareaBlock').offsetHeight - 24) + 'px';
     }
     document.documentElement.style.setProperty('--hPanel', hP + 'px');
-    if (curUser)
-    curUser.panel.querySelector('.dialogs').style.height = (hP -
-        curUser.panel.querySelector('.textareaBlock').offsetHeight - 24) + 'px';
-
     var visualBlock = null;
     if (!hello.hidden) visualBlock = hello;
     else if(!document.getElementById('exchangeBlock').hidden) visualBlock = document.getElementById('exchangeBlock');
-    else if(!document.getElementById('settingsBlock').hidden) visualBlock = document.getElementById('settingsBlock');
+    else if(!settingsBlock.hidden) visualBlock = settingsBlock;
     if (visualBlock && visualBlock.offsetTop < 0) visualBlock.style.top = 0;
     if (!document.getElementById('fotoRenameBlock').hidden) {
         fotoBlock.resizeFotoRenameBlock();
@@ -1004,8 +1049,8 @@ function mediaDeviceDefine(e) {
     if (!navigator.mediaDevices || !navigator.mediaDevices.enumerateDevices) {
         console.log("enumerateDevices() not supported.");
         isMediaDevice = {audio: false, video: false};
-        dialogsFone.hidden = true;
-        dialogsVideo.hidden = true;
+        dialogsFone.style.display = 'none';
+        dialogsVideo.style.display = 'none';
         if (setup) mediaDevice={audio:false, video: false};
     } else {
         removeChildren(videoinput);
@@ -1038,12 +1083,12 @@ function mediaDeviceDefine(e) {
                 if (videoIn >0) settings.videoId = videoinput.value;
                 if (audioIn === 0) {
                     //Общение не возможно
-                    dialogsFone.hidden = true;
-                    dialogsVideo.hidden = true;
+                    dialogsFone.style.display = 'none';
+                    dialogsVideo.style.display = 'none';
                     isMediaDevice = {audio: false, video: false};
                     if (setup) mediaDevice={audio:false, video: false};
                 } else if (videoIn === 0) {
-                    dialogsVideo.hidden = true;
+                    dialogsVideo.style.display = 'none';
                     isMediaDevice = {audio: true, video: false};
                     if (setup) mediaDevice={audio:true, video: false};
                 } else {
@@ -1054,8 +1099,8 @@ function mediaDeviceDefine(e) {
             .catch(function (err) {
                 console.log(err.name + ": " + err.message);
                 isMediaDevice = {audio: false, video: false};
-                dialogsFone.hidden = true;
-                dialogsVideo.hidden = true;
+                dialogsFone.style.display = 'none';
+                dialogsVideo.style.display = 'none';
                 if (setup) mediaDevice={audio:false, video: false};
             });
     }
@@ -1093,7 +1138,7 @@ dialogsVideo.onclick = dialogsFone.onclick = function(e) {
             }
         });
         if (talkState == 'none') toCall(isVideo);      // Беседы нет - звоним
-        else answerCall();                      // Идет звонок - отвечаем на звонок
+        else answerCall(isVideo);                      // Идет звонок - отвечаем на звонок
 
     } else {
         // Запрашиваем устройства для использования, если они не предаставлены - звонить не будем
@@ -1146,8 +1191,8 @@ function toCall(isVideo) {
     // формируем список абонентов для беседы
     prepareTalk('image/bellEcho.mp3',0.33);   // подготовляваемся у беседе
     talkState = 'connect';                              // переходим в режим соединения
-    dialogsVideo.hidden = true;
-    dialogsFone.hidden = true;
+    dialogsVideo.style.display = 'none';
+    dialogsFone.style.display = 'none';
     dialogsVideoSwitch.style.display = 'inline-block';
     dialogsFoneSwitch.style.display = 'inline-block';
 }
@@ -1175,6 +1220,9 @@ function prepareTalk(ringtone, volume) {
     // появляютс окна: его окно (или их) с фото
     for (var i=0; i < talkUsers.length; i++) {
         talkUsers[i].videoBlock = localVideoBlock.cloneNode(true);
+        var buttonRoll = talkUsers[i].videoBlock.firstElementChild.firstElementChild;
+        buttonRoll.style.display = 'inline-block';
+        buttonRoll.onclick = roll;
         talkUsers[i].videoBlock.querySelector('.videoHeadTxt').textContent = talkUsers[i].fullName;
         talkUsers[i].fotoBlock = talkUsers[i].videoBlock.children[1];
         talkUsers[i].fotoBlock.src = talkUsers[i].foto;
@@ -1217,7 +1265,12 @@ function prepareTalk(ringtone, volume) {
         '<img src="image/bell.gif" class="bellImage">');
     // звучит рингтон
     bell.src=ringtone;
-    bell.play();
+    try {
+        bell.play();
+    } catch {
+        messageVisible('Вам звонят')
+    }
+
     if (volume) bell.volume = volume;
     else bell.volume = 1;
     // актиаируются кнопки видео и микрофон
@@ -1275,12 +1328,13 @@ function commandConnection(q) {
     createAndSendOffer();
 }
 // Отключение / включение видео
-dialogsVideoSwitch.onclick = function() {
+dialogsVideoSwitch.onclick = function(online) {
     // отключается канал передачи видео, изображение Видео перечеркивается, отображается фото
     // при повторном нажатии - все возобнавляется
     var mtrack = localVideoStream.getVideoTracks();
     if (mtrack.length > 0) {
-        if (mtrack[0].enabled) {
+        if (typeof online !== 'boolean') online = !mtrack[0].enabled;
+        if (!online) {
             dialogsVideoSwitch.querySelector('img').src = 'image/cameraOff.png';
             localVideoBlock.children[0].querySelector('.imgVideo').src = 'image/eyeClose.png';
             localVideo.hidden = true;
@@ -1294,14 +1348,15 @@ dialogsVideoSwitch.onclick = function() {
             localVideoBlock.children[0].querySelector('.imgVideo').src = 'image/eyeOpen.png';
         }
         for (var i=0; i < mtrack.length; i++) {
-            mtrack[i].enabled = !mtrack[i].enabled;
+            mtrack[i].enabled = online;
         }
     }
 }
 // Отключение, включение микрофона
-dialogsFoneSwitch.onclick = function () {
+dialogsFoneSwitch.onclick = function (online) {
     var mtrack = localVideoStream.getAudioTracks();
-    if (mtrack[0].enabled) {
+    if (typeof online !== 'boolean') online = !mtrack[0].enabled;
+    if (!online) {
         dialogsFoneSwitch.querySelector('img').src = 'image/phoneOff.png';
         wsSend({idUser: talkIdUser, command: 'Устройство', audio: false});
         localVideoBlock.children[0].querySelector('.imgAudio').src = 'image/soundOff.png';
@@ -1313,7 +1368,7 @@ dialogsFoneSwitch.onclick = function () {
     }
     if (mtrack.length > 0) {
         for (var i=0; i < mtrack.length; i++) {
-            mtrack[i].enabled = !mtrack[i].enabled;
+            mtrack[i].enabled = online;
         }
     }
 }
@@ -1354,8 +1409,8 @@ function onAddStreamHandler(evt) {
     talkUsers[0].video.srcObject = evt.streams[0];
     talkUsers[0].video.volume = 1;
     talkState = 'active';
-    dialogsVideo.hidden = true;
-    dialogsFone.hidden = true;
+    dialogsVideo.style.display = 'none';
+    dialogsFone.style.display = 'none';
     dialogsVideoSwitch.style.display = 'inline-block';
     dialogsFoneSwitch.style.display = 'inline-block';
     if ('getDisplayMedia' in navigator.mediaDevices) {
@@ -1427,8 +1482,12 @@ function endCall() {
     // убираются окна, регистрируется отказ
     videoBlock.hidden = true;
     for (var i=0; i < talkUsers.length; i++) talkUsers[i].videoBlock.remove();
+    localVideoBlock.classList.remove("freeVideoBlock");
     localVideo.hidden = true;
     localFoto.hidden = true;
+    if (!leftBlockVisible) leftBlockSwith(true);
+    if (!panelVisible) dialogVisible(true);
+
     // спрятать кнопку положить трубку
     dialogsClose.style.display = 'none';
 
@@ -1460,10 +1519,11 @@ function endCall() {
             });
         }
     }
+    panelVisibleAuto = true;
     buttonVideoFone(curUser.online);
     dialogVisible(true);
     dialogHideShow.style.display='none';
-    //resize();
+    resize();
 }
 // Активация / деактивация кнопок Видео и микрофон
 function buttonVideoFone(online) {
@@ -1511,6 +1571,33 @@ function medioDeviceEx(q) {
         }
     }
 }
+// Свернуть - развернуть медиа-окно собеседника
+function roll(e) {
+    var newVideoFull = !videoFull;
+    if ( typeof e === 'boolean') {
+        newVideoFull = e;
+        if (newVideoFull === videoFull) return false;
+    }
+    if (newVideoFull) {
+        if (leftBlockVisible) leftBlockSwith(false);
+        if (panelVisible) dialogVisible(false);
+        //document.appendChild(localVideoBlock);
+        /*localVideoBlock.classList.add('freeVideoBlock');
+        localVideoBlock.style.width = wLocalFree + 'px';
+        talkUsers[0].videoBlock.style.width = 'calc(100% - 4px)';*/
+        talkUsers[0].videoBlock.firstElementChild.firstElementChild.textContent = '□'
+    } else {
+        if (!leftBlockVisible) leftBlockSwith(true);
+        if (!panelVisible) dialogVisible(true);
+        /*talkUsers[0].videoBlock.style.width = 'calc(50% - 2px)';
+        localVideoBlock.classList.remove('freeVideoBlock');
+        localVideoBlock.style.width = 'calc(50% - 2px)';*/
+        talkUsers[0].videoBlock.firstElementChild.firstElementChild.textContent = '⃞'
+    }
+    videoFull = newVideoFull;
+    resize();
+    return false;
+}
 
 /********************** Демонстрация экрана **********************/
 screenDemo.onclick = function(ev) {
@@ -1529,16 +1616,21 @@ function screenDemoRemove(){
 }
 function screenDemoEnd() {
     console.log('Порлучена команда Сброс 2');
-
-    screen.srcObject = null;
     screenBlock.hidden = true;
-    resize();
-    try {
-        pcIn=close();
-    } catch (err) {
-        console.log(err)
-    }
+    //localVideoBlock.style.display = 'inline-block';
+    //talkUsers[0].videoBlock.display = 'inline-block';
+    /*screen.srcObject = null;
+    if (pcIn) {
+        try {
+            pcIn=close();
+        } catch (err) {
+            console.log(err)
+        }
+        pcIn=null;
+    }*/
     pcIn=null;
+    screen.srcObject = null;
+    resize();
 }
 
 function screenDemoAdd() {
@@ -1587,12 +1679,22 @@ function command2Offer(q) {
     console.log("Получил SDP 2 Offer от демонстратора.");
     pcIn = new RTCPeerConnection(peerConnCfg);
     pcIn.onicecandidate = onIceCandidate;
-    pcIn.ontrack = function (evt) {
+    pcIn.ontrack = async function (evt) {
+        //localVideoBlock.style.display = 'none';
+        //talkUsers[0].videoBlock.display = 'none';
         screen.srcObject = evt.streams[0];
         screenBlock.hidden = false;
-        dialogHideShow.style.display = 'inline-block';
-        resize();
-        screen.play();
+        //dialogHideShow.style.display = 'inline-block';
+        //if (leftBlockVisible) leftBlockSwith(false);
+        //if (panelVisible) dialogVisible(false);
+        try {
+            await screen.play();
+            resize();
+        } catch(err) {
+            messageVisible('Ошибка при попытке отображения экрана собеседника: ' + err.message);
+            screen.srcObject = null;
+            screenBlock.hidden = true;
+        }
     };
     //console.log('Определен peer зрителя')
     pcIn.setRemoteDescription(q.sdp)
@@ -1614,10 +1716,16 @@ function command2Answer(q) {
     console.log("Получил sdp Answer от удаленного партнера.");
     pcIn.setRemoteDescription(new RTCSessionDescription(q.sdp));
 }
+
+/********************************************************************************/
 // Спрятать - показать контакты
-columnShift.onclick = leftBlockSwith;
+columnShift.onclick = function(ev) {
+    leftBlockSwith(ev);
+    resize();
+}
+//
 function leftBlockSwith(ev) {
-    if (typeof ev == 'boolean') var online = true;
+    if (typeof ev == 'boolean') var online = ev;
     else if (ev) online = !leftBlockVisible;
     else online = leftBlockVisible;
 
@@ -1632,20 +1740,13 @@ function leftBlockSwith(ev) {
         columnShift.children[0].src='image/columnRight.png';
     }
     leftBlockVisible = online;
-    /*
-    if (leftBlock.display === "none") {
-        document.documentElement.style.setProperty('--wLeft', wLeft);
-        leftBlock.display = 'inline-block';
-        columnShift.children[0].src='image/columnLeft.png';
-    } else {
-        wLeft = getComputedStyle(document.documentElement).getPropertyValue('--wLeft');
-        document.documentElement.style.setProperty('--wLeft', '0px');
-        leftBlock.display = 'none';
-        columnShift.children[0].src='image/columnRight.png';
-    }*/
 };
 // Спратать - показать диалоги
-dialogHideShow.onclick = dialogVisible;
+dialogHideShow.onclick = function(e) {
+    panelVisibleAuto = false;
+    dialogVisible(e);
+    resize()
+}
 // Прячет (false) / показывает (true), восстанавливает состояние (null || undefained)
 // меняет на противоположное (остальное) отображение панели диалога с контактным лицом:
 function dialogVisible(e) {
@@ -1662,7 +1763,7 @@ function dialogVisible(e) {
         img.src="image/dialogShow.png"
         panelVisible=false;
     }
-    resize();
+    //resize();
 }
 // изменение разрешения видео
 function setResolution(value) {
