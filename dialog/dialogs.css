@@ -36,11 +36,11 @@
     }
 }
 :root {
-    --hFooter: 8px;
-    --hPanelMin: 150px;
-    --hPanel: calc(100vh - var(--hHead) - var(--hFooter));
-    --wRight: 5px;
-    --wLocalFree: 120px;
+    --hFooter: 8px;         /* Отступ снизу */
+    --hPanelMin: 150px;     /* Минимальныая высота панели текстового диалога */
+    --hPanel: calc(100vh - var(--hHead) - var(--hFooter)); /* высота по умолчанию панели текстового диалога */
+    --wRight: 5px;          /* Отступ спарва */
+    --wLocalFree: 120px;    /* ширина свободного локального видео-окна */
 }
 html, body {
     font-family: 'Roboto Condensed', sans-serif;

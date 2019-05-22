@@ -6,6 +6,8 @@ document.getElementById('exchangeKey').onclick = function () {
     if (!exchange) exchange = new Exchange();
     exchange.visible();
 }
+//прермещение окна
+dragObject(exchangeBlock, exchangeBlock.firstElementChild);
 
 function Exchange() {
     const exchangeBlock = document.getElementById('exchangeBlock');
@@ -33,8 +35,6 @@ function Exchange() {
     var receiveFile = null;     // Принимаемый файл {name, size, offset}
     var sizeSendBlock = 16384;  //131072; // Размер блока передаваемых данных
     var receiveElement = null;
-    //прермещение окна
-    dragAnObject(exchangeBlock, exchangeBlock.firstElementChild);
     // Чтение данных по обмену, пока  только idUser
     this.getData = function () {
         return {
@@ -199,7 +199,7 @@ function Exchange() {
             })
             .then(function () {
                 wsSend({idUser: sendIdUser, sdp: sendPC.localDescription, command: 'ПредложениеSend'});
-                console.log("Отправлена команда ПредложениеSend");
+                //console.log("Отправлена команда ПредложениеSend");
             })
             .catch(function (err) {
                 console.log("Ошибка createOffer: ", err);
@@ -209,7 +209,7 @@ function Exchange() {
     }
     // Обработка получателем команды Предложение
     this.commandOffer = function (q) {
-        console.log("Получил SDP Offer от отправителя");
+        //console.log("Получил SDP Offer от отправителя");
         try {
             sendIdUser = q.idUser;
             if(sendIdUser == talkIdUser) sendUser = talkUsers[0];
@@ -265,7 +265,7 @@ function Exchange() {
         sendChannel = null;
         if (sendPC) sendPC.close();
         sendPC = null;
-        console.log('Каналы и соединения закрыты');
+        //console.log('Каналы и соединения закрыты');
         sendFile=null;
         receiveFile = null;
         modal.hidden = true;
@@ -324,7 +324,7 @@ function Exchange() {
         fileReader.onload = function (e) {
             try {
                 sendChannel.send(e.target.result);
-                console.log('Переданы данные файла байт: ',e.target.result.byteLength);
+                //console.log('Переданы данные файла байт: ',e.target.result.byteLength);
             } catch (error){
                 console.log('Ошибка передачи данных файла: ', error);
                 sendChannel.send('{type: "error", comment: "Data transfer error"}')
@@ -414,7 +414,7 @@ function Exchange() {
             }
         } else if(receiveFile) {
             receiveFile.offset += evt.data.byteLength;
-            console.log('получен блок '+evt.data.byteLength+' байт файла ' + receiveFile.name + ', осталось ' + (receiveFile.size - receiveFile.offset) );
+            //console.log('получен блок '+evt.data.byteLength+' байт файла ' + receiveFile.name + ', осталось ' + (receiveFile.size - receiveFile.offset) );
             receiveFile.buffer.push(evt.data);
             if (receiveFile.offset < receiveFile.size) {
                 receiveElement.children[1].textContent = Math.round(receiveFile.offset * 100 / receiveFile.size) + "%";

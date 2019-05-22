@@ -64,9 +64,8 @@ function dragAnObject(object, header) {
     }
 
     moveHeader.onmousedown = function (e) {
-        // если нажата не левая клавиша то выходим
-        if (e.which != 1) return;
-
+        // если нажата не левая клавиша или статическое позиционирование - то выходим
+        if (e.which != 1 || getComputedStyle(elem).position == 'static') return;
         dragObject.elem = elem;
         dragObject.downX = e.pageX;
         dragObject.downY = e.pageY;

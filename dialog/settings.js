@@ -121,6 +121,7 @@ function SettingsMedia() {
     const noiseSuppression = document.getElementById('noiseSuppression');
     const setVideoDevice = document.getElementById('setVideoDevice');
     const freeDevices = document.getElementById('freeDevices');
+    const signalUsers = document.getElementById('signalUsers');
     const resolutionVisual = document.getElementById('resolutionVisual');
 
     // Переменные анализатора звука
@@ -134,6 +135,8 @@ function SettingsMedia() {
     noiseSuppression.checked = settings.noiseSuppression;
     setVideoDevice.checked = settings.queryVideoDevice;
     freeDevices.checked = settings.freeDevices;
+    signalUsers.checked = settings.signalUsers;
+
     var elem = resolutions.querySelector('input[value="'+settings.videoFormat+'"]');
     if (elem) elem.checked=true;
     // Если медиа-поток уже существует и активен - переносим его в окно настроек
@@ -391,6 +394,9 @@ function SettingsOther() {
     // Обработка переключателя Освобождать медиа-устройства
     freeDevices.onchange = function () {
         changeSettings('freeDevices', this.checked);
+    }
+    signalUsers.onchange = function () {
+        changeSettings('signalUsers', this.checked);
     }
     // Настройки - очистка данных авторизации
     trashClearBlock.onclick = function (ev) {

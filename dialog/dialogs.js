@@ -107,7 +107,8 @@ var settings = {
     autoGainControl: false,     //  автоматическая регулировка усиления
     echoCancellation: false,    //  подавление эха
     noiseSuppression: true,     //  подавление шума
-    videoFull: false            //  изображение пользователя на весь экран
+    videoFull: false,           //  изображение пользователя на весь экран
+    signalUsers: false          //  сигнализировать о подключении и отключении контактов
 };
 var textareaMaxHidht = 100;     // Максимальная высота области ввода
 var webSocket = wsConnect();    //  Подключение к webSocket серверу
@@ -123,8 +124,9 @@ var pos = settings.videoFormat.indexOf('x');
 settings.videoWidth = settings.videoFormat.substr(0,pos) - 0; //Разрешение - ширина
 settings.videoHeight = settings.videoFormat.substr(pos+1) - 0;  //Разрешение - высота
 //прермещение окна настройки
-dragAnObject(settingsBlock, settingsBlock.firstElementChild);
-dragAnObject(hello, hello.firstElementChild);
+dragObject(settingsBlock, settingsBlock.firstElementChild);
+dragObject(hello, hello.firstElementChild);
+dragObject(localVideoBlock, localVideoBlock.firstElementChild)
 
 idUser = getPropertyFromCookie('idUser');   // Чтение в куках кода пользователя
 
@@ -230,7 +232,7 @@ function wsConnect() {
             else if (q.command === "ОтветSend") exchange.commandAnswer(q);
             else if (q.command === "Занято") {
                 bell.src='busy.mp3';
-                bell.play(0);
+                bell.play();
                 bell.volume=1;
                 dialogsClose.style.display='none';
                 screenDemo.style.display ='none';
@@ -438,8 +440,7 @@ function loadNewUser(q) {
         '</tr>\n';
     contactsTbody.insertAdjacentHTML('beforeend',text);
 
-    signal("image/newContact.mp3");
-    messageVisible('Добавлен новый контакт: '+users[i].fullName);
+    signal("image/newContact.mp3",0,'Добавлен новый контакт: '+users[i].fullName);
 }
 
 // Загрузить список диалогов
@@ -866,13 +867,13 @@ function userOnline(q)/* idUser, value: true||false */  {
         if (users[i].idUser == q.idUser ) {
             users[i].online = q.value;
             if (q.value){
-                signal();
+                if (settings.signalUsers) signal('image/entry.mp3',0,'Пришел '+users[i].fullName );
                 contactsTbody.children[i].querySelector('span').style.color = '#087b52';
                 //if (talkState === 'none') {
                 buttonVideoFone(true);
                 //}
             } else {
-                signal("image/exit.mp3");
+                if (settings.signalUsers) signal("image/exit.mp3", 0,users[i].fullName + ' ушел');
                 contactsTbody.children[i].querySelector('span').style.color = '#ff0000';
                 //if (talkState === 'none') {
                 buttonVideoFone(false);
@@ -916,101 +917,6 @@ function textarea(e) {
 window.onresize = resize;
 
 function resize() {
-    // Определим отношения
-    //var h = userPanels.clientHeight;
-    //document.body.clientHeight - headDialogs.offsetHeight - 4;parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hFooter'));
-    var h0 = 0;
-    // Если медиа-общение
-    if (!videoBlock.hidden) {
-        var w0 = document.body.clientWidth - (leftBlockVisible ? wLeft : 0) - 25;
-        var h0 = userPanels.clientHeight - (panelVisible && !panelVisibleAuto ? hPanelMin : 0);
-        if (!screenBlock.hidden) {   // ********** если есть отображение экрана **************
-            var hwSc = screen.scrollHeight / screen.scrollWidth;
-            w1 = Math.floor(h0 / hwSc);
-            if (w1 > w0) {
-                w1 = w0;
-                h1 = Math.ceil(w1 * hwSc);
-                h0 = h1 < h0 ? h0 - h1 : 0;
-            } else {
-                h1 = h0;
-                h0 = 0;
-            }
-            h0 = h1;
-            screen.style.width = w1 + 'px';
-            if (panelVisible && panelVisibleAuto && h0 < hPanelMin) {
-                dialogVisible(false);
-            }
-        }
-
-        // максимальная ширина и высота области изображений с учетом заголовков
-        // Отношение высоты к ширине фото или видео собеседника (без заголовков)
-        if (talkUsers[0].video.hidden) {
-            var hwHe = talkUsers[0].fotoBlock.naturalHeight ? talkUsers[0].fotoBlock.naturalHeight / talkUsers[0].fotoBlock.naturalWidth : 0.75;
-        } else {
-            hwHe = talkUsers[0].video.videoHeight ? talkUsers[0].video.videoHeight / talkUsers[0].video.videoWidth : 0.75;
-        }
-        // Отношение высоты к ширине мое
-        if (localVideo.hidden) {
-            var hwYa = localFoto.naturalHeight ? localFoto.naturalHeight / localFoto.naturalWidth : 0.75;
-        } else {
-            hwYa = localVideo.videoHeight ? localVideo.videoHeight / localVideo.videoWidth : 0.75;
-        }
-        // Если изображения собеседника и мое равны по ширине
-        var col = 1;
-        if (!videoFull) {
-            if (localVideoBlock.classList.contains('freeVideoBlock')) {
-                localVideoBlock.classList.remove('freeVideoBlock');
-            }
-            var w1 = (h0-58) / (hwYa + hwHe);
-            // Определяем количество Колонок фото/видео
-            if (w1 > w0 / 2) {
-                // в одну колонку
-                col = 1;
-                if (w1 > w0) w1 = w0;
-                var h1 = Math.ceil(w1 * (hwYa + hwHe)) + 58;
-            } else {
-                // в 2 колонки
-                col = 2;
-                w1 = Math.floor(w0 / 2);
-                h1 = Math.ceil(w1 * Math.max(hwYa, hwHe)) + 29;
-            }
-            if (h1 > h0) h1 = h0;
-            localVideoBlock.style.width = w1 + 'px';
-        } else { // ************** Отображается собеседник на весь блок *************
-            w1 = Math.floor((h0 - 29) / hwHe);
-            var w2 = w0 - w1;
-            if (w2 <= 0) {
-                w1 = w0;
-                h1 = Math.ceil(w1 * hwHe) + 29;
-                w2 = Math.floor((h0 - h1 - 29) / hwYa);
-                if (w2 > w0) w2 = w0;
-                h1 = h1 + h0;
-            } else h1 = h0;
-
-            if (w2 >= wLocalFree) {
-                if (localVideoBlock.classList.contains('freeVideoBlock')) {
-                    localVideoBlock.classList.remove('freeVideoBlock');
-                }
-                localVideoBlock.style.width = w2 + 'px';
-            } else {
-                if (!localVideoBlock.classList.contains('freeVideoBlock')) {
-                    localVideoBlock.classList.add('freeVideoBlock');
-                    localVideoBlock.style.width = wLocalFree + 'px';
-                }
-            }
-        }
-        talkUsers[0].videoBlock.style.width = w1 + 'px';
-        h0 = h0 + h1;
-        var hV = videoBlock.scrollHeight;
-        if (col=2 && h0 > hV) hV = h0;
-        if (panelVisibleAuto && panelVisible && hV > userPanels.clientHeight - hPanelMin) dialogVisible(false);
-        else if (!panelVisible && panelVisibleAuto && userPanels.clientHeight - hV >= hPanelMin) dialogVisible(true);
-    }
-    var hP = userPanels.clientHeight - hV ;
-    if (curUser && panelVisible) {
-        curUser.panel.querySelector('.dialogs').style.height = (hP - curUser.panel.querySelector('.textareaBlock').offsetHeight - 24) + 'px';
-    }
-    document.documentElement.style.setProperty('--hPanel', hP + 'px');
     var visualBlock = null;
     if (!hello.hidden) visualBlock = hello;
     else if(!document.getElementById('exchangeBlock').hidden) visualBlock = document.getElementById('exchangeBlock');
@@ -1019,8 +925,174 @@ function resize() {
     if (!document.getElementById('fotoRenameBlock').hidden) {
         fotoBlock.resizeFotoRenameBlock();
     }
+
+    var h = userPanels.clientHeight; // Высота правой панели
+    //var w0 = document.body.clientWidth - (leftBlockVisible ? wLeft : 0) - 25; // ширина
+    //var h0 = h - (panelVisible && !panelVisibleAuto ? hPanelMin : 0);   // максимальная высота видео-блок
+    //document.body.clientHeight - headDialogs.offsetHeight - 4;parseInt(getComputedStyle(document.documentElement).getPropertyValue('--hFooter'));
+
+    if (videoBlock.hidden) {            // Нет медиадиалога
+        curUser.panel.querySelector('.dialogs').style.height = (h - curUser.panel.querySelector('.textareaBlock').offsetHeight - 24) + 'px';
+        document.documentElement.style.setProperty('--hPanel', h + 'px');
+    } else if (!screenBlock.hidden) {   // ********** есть отображение экрана **************
+        if (screen.videoHeight && screen.videoWidth) resizeScreen(screen.videoHeight / screen.videoWidth);
+        else {
+            var i=5;
+            var idTimer = setInterval(() => {
+                if (screen.videoHeight && screen.videoWidth) {
+                    clearInterval(idTimer)
+                    resizeScreen(screen.videoHeight / screen.videoWidth);
+                } else {
+                    i--;
+                    if (i < 0) {
+                        clearInterval(idTimer);
+                        resizeScreen(screen.scrollHeight / screen.scrollWidth);
+                    }
+                }
+            }, 250);
+        }
+    } else {
+        // Отношение высоты к ширине мое
+        if (localVideo.hidden) {
+            var hwYa = localFoto.naturalHeight && localFoto.naturalWidth ? localFoto.naturalHeight / localFoto.naturalWidth : 0;
+        } else {
+            hwYa = localVideo.videoHeight && localVideo.videoWidth ? localVideo.videoHeight / localVideo.videoWidth : 0;
+        }
+        if (talkUsers[0].video.hidden) {
+            var hwHe = talkUsers[0].fotoBlock.naturalHeight && talkUsers[0].fotoBlock.naturalWidth ?
+                talkUsers[0].fotoBlock.naturalHeight / talkUsers[0].fotoBlock.naturalWidth : 0;
+        } else {
+            hwHe = talkUsers[0].video.videoHeight && talkUsers[0].video.videoWidth ?
+                talkUsers[0].video.videoHeight / talkUsers[0].video.videoWidth : 0;
+        }
+        if (hwYa && hwHe) resizeVideo(hwYa, hwHe);
+        else {
+            i=5
+            idTimer = setInterval(() => {
+                if (!hwYa) {
+                    if (localVideo.hidden) {
+                        if (localFoto.naturalHeight && localFoto.naturalWidth) hwYa = localFoto.naturalHeight / localFoto.naturalWidth;
+                        else if (localVideo.videoHeight && localVideo.videoWidth) hwYa = localVideo.videoHeight / localVideo.videoWidth;
+                    }
+                }
+                if (!hwHe) {
+                    if (talkUsers[0].video.hidden) {
+                        if (talkUsers[0].fotoBlock.naturalHeight && talkUsers[0].fotoBlock.naturalWidth)
+                            hwHe = talkUsers[0].fotoBlock.naturalHeight / talkUsers[0].fotoBlock.naturalWidth;
+                        else if (talkUsers[0].video.videoHeight && talkUsers[0].video.videoWidth)
+                            hwHe = talkUsers[0].video.videoHeight / talkUsers[0].video.videoWidth;
+                    }
+                }
+                if (hwYa && hwHe) {
+                    clearInterval(idTimer);
+                    resizeVideo(hwYa, hwHe);
+                }
+                else {
+                    i--;
+                    if (i < 0) {
+                        if (!hwYa) hwYa = localVideo.hidden ? localFoto.scrollHeight / localFoto.scrollWidth :
+                            (localVideo.videoHeight / localVideo.videoWidth);
+                        if (!hwHe) hwHe = talkUsers[0].video.hidden ? talkUsers[0].fotoBlock.scrollHeight / talkUsers[0].fotoBlock.scrollWidth :
+                            (talkUsers[0].video.scrollHeight / talkUsers[0].video.scrollWidth);
+                        clearInterval(idTimer);
+                        resizeVideo(hwYa, hwHe);
+                    }
+                }
+            },250);
+
+        }
+    }
+    return false;
 }
 
+function resizeScreen(hwSc) {
+    var h = userPanels.clientHeight; // Высота правой панели
+    var w0 = document.body.clientWidth - (leftBlockVisible ? wLeft : 0) - 25; // ширина
+    var h0 = h - (panelVisible && !panelVisibleAuto ? hPanelMin : 0);   // максимальная высота видео-блок
+    var w1 = Math.floor(h0 / hwSc);
+    if (w1 > w0) {
+        w1 = w0;
+        var h1 = Math.ceil(w1 * hwSc);  // Высота видео-блока
+        h0 = h1 < h0 ? h0 - h1 : 0;     // Высота текстового блока
+    } else {
+        h1 = h0;
+        h0 = 0;
+    }
+    screen.style.width = w1 + 'px';
+    if (panelVisible && panelVisibleAuto && h0 < hPanelMin) {
+        dialogVisible(false);
+    }
+    if (panelVisible) {
+        curUser.panel.querySelector('.dialogs').style.height = (h0 - curUser.panel.querySelector('.textareaBlock').offsetHeight - 24) + 'px';
+    }
+    document.documentElement.style.setProperty('--hPanel', h0 + 'px');
+}
+
+function resizeVideo(hwYa, hwHe) {
+    var h = userPanels.clientHeight; // Высота правой панели
+    var w0 = document.body.clientWidth - (leftBlockVisible ? wLeft : 0) - 25; // ширина
+    var h0 = h - (panelVisible && !panelVisibleAuto ? hPanelMin : 0);   // максимальная высота видео-блок
+    var col = 1;
+    var hh = 24;
+    if (!videoFull) {
+        if (localVideoBlock.classList.contains('freeVideoBlock')) {
+            localVideoBlock.classList.remove('freeVideoBlock');
+        }
+        var w1 = Math.floor((h0 - hh - hh) / (hwYa + hwHe));
+        // Определяем количество Колонок фото/видео
+        if (w1 > (w0 + hh/2) / 2) {
+            // в одну колонку
+            col = 1;
+            w1 -= hh / 2;
+            if (w1 > w0) w1 = w0;
+            var h1 = h0; //Math.ceil(w1 * (hwYa + hwHe)) + hh;
+
+        } else {
+            // в 2 колонки
+            col = 2;
+            w1 = Math.floor(w0 / 2) - hh / 3;
+            h1 = Math.ceil(w1 * Math.max(hwYa, hwHe)) + hh * 1.25;
+        }
+        if (h1 > h0) h1 = h0;
+        localVideoBlock.style.width = w1 + 'px';
+    } else { // ************** Отображается собеседник на весь блок *************
+        w1 = Math.floor((h0 - hh) / hwHe);
+        var w2 = w0 - w1;
+        if (w2 <= 0) {  // Окно собеседника на всю доступную ширину
+            w1 = w0;                                // Ширина окна собеседника
+            h1 = Math.ceil(w1 * hwHe) + hh;         // Высота окна собеседника
+            var h2 = h0 - h1;                       // Высота свободная
+            w2 = Math.floor((h2 - hh) / hwYa);      // ширина моего окна, на остаток высоты
+            if (w2 > w0) {
+                w2 = w0;
+                h2 = Math.ceil(w2 * hwHe) + hh;
+            }
+            if (w2 >= wLocalFree) {     // в одну колонку
+                h1 = h1 + h2;           // Высота видеоокна
+            }
+        } else h1 = h0;             // Окно собеседника на всю доступную высоту
+
+        if (w2 >= wLocalFree) {
+            if (localVideoBlock.classList.contains('freeVideoBlock')) {
+                localVideoBlock.classList.remove('freeVideoBlock');
+            }
+            localVideoBlock.style.width = w2 + 'px';
+        } else {
+            if (!localVideoBlock.classList.contains('freeVideoBlock')) {
+                localVideoBlock.classList.add('freeVideoBlock');
+                localVideoBlock.style.width = wLocalFree + 'px';
+            }
+        }
+    }
+    talkUsers[0].videoBlock.style.width = w1 + 'px';
+    var hP = h - h1;
+    if (panelVisibleAuto && panelVisible && hP < hPanelMin) dialogVisible(false);
+    else if (panelVisibleAuto && !panelVisible && hP >= hPanelMin) dialogVisible(true);
+    if (panelVisible) {
+        curUser.panel.querySelector('.dialogs').style.height = (hP - curUser.panel.querySelector('.textareaBlock').offsetHeight - 24) + 'px';
+    }
+    document.documentElement.style.setProperty('--hPanel', hP + 'px');
+}
 //*************     Видео-блок     *****************
 navigator.mediaDevices.ondevicechange = mediaDeviceDefine;
 // определение наличия медиа-устройств
@@ -1246,7 +1318,8 @@ function prepareTalk(ringtone, volume) {
         '<img src="image/bell.gif" class="bellImage">');
     // звучит рингтон
     bell.src=ringtone;
-    try {
+    playMedia(bell, volume ? volume : 1, 'Вам звонят');
+    /*try {
         bell.play();
     } catch {
         messageVisible('Вам звонят')
@@ -1254,6 +1327,7 @@ function prepareTalk(ringtone, volume) {
 
     if (volume) bell.volume = volume;
     else bell.volume = 1;
+    */
     // актиаируются кнопки видео и микрофон
     buttonVideoFone(true);
     // появляется кнопка "Положить трубку"
@@ -1262,6 +1336,17 @@ function prepareTalk(ringtone, volume) {
     if ('getDisplayMedia' in navigator.mediaDevices) {
         screenDemo.style.display ='inline-block';
         screenDemo.children[0].src='image/screenYes.png';
+    }
+}
+// play медиа-элемента
+async function playMedia(elem, volume, messageErr) {
+    try {
+        elem.loop = true;
+        await elem.play();
+        if (volume) elem.volume = volume;
+    } catch (err) {
+        console.log(err);
+        if (messageErr) messageVisible(messageErr);
     }
 }
 // подняли трубку при звонке
@@ -1595,11 +1680,15 @@ function screenDemoRemove(){
     screenDemo.children[0].src='image/screenYes.png';
     screenVideoStream = null;
 }
+
 function screenDemoEnd() {
     //console.log('Порлучена команда Сброс 2');
     screenBlock.hidden = true;
+    videoBlock.
     pcIn=null;
     screen.srcObject = null;
+    localVideoBlock.style.display = 'inline-block';
+    talkUsers[0].videoBlock.style.display = 'inline-block';
     resize();
 }
 
@@ -1649,6 +1738,8 @@ function command2Offer(q) {
     pcIn = new RTCPeerConnection(peerConnCfg);
     pcIn.onicecandidate = onIceCandidate;
     pcIn.ontrack = async function (evt) {
+        localVideoBlock.style.display = 'none';
+        talkUsers[0].videoBlock.style.display = 'none';
         screen.srcObject = evt.streams[0];
         screenBlock.hidden = false;
         try {
@@ -1658,6 +1749,8 @@ function command2Offer(q) {
             messageVisible('Ошибка при попытке отображения экрана собеседника: ' + err.message);
             screen.srcObject = null;
             screenBlock.hidden = true;
+            localVideoBlock.style.display = 'inline-block';
+            talkUsers[0].videoBlock.style.display = 'inline-block';
         }
     };
     pcIn.setRemoteDescription(q.sdp)
@@ -1782,14 +1875,15 @@ function removeChildren(elem, leave) {
 
 /************          Общик функции        ************/
 // Подать сигнал
-async function signal(file,time) {
+async function signal(file,time, message) {
     if (!file) file='image/signal.mp3';
-    if (!time) time=750;
+    bell.loop =  time && true;
     bell.src=file;
     bell.volume=1;
+    if (message) messageVisible(message);
     try {
         await bell.play();
-        setTimeout(()=>{bell.pause();bell.src='';},time);
+        if (time) setTimeout(()=>{bell.pause();bell.src='';},time);
     } catch (err){
         console.log(err);
     }
@@ -1841,3 +1935,111 @@ function commandLineUpDown() {
 
 }
 
+function dragObject(elem, moveHeader) {
+    if (!moveHeader) moveHeader = elem.firstElementChild;
+    var dragObject = {};
+    var delta = 3;
+    // Изменение порядка окон при нажатии
+    /*if (!document.zindexCard) document.zindexCard = 9999;
+    elem.style.zIndex = ++document.zindexCard;
+
+    elem.onmousedown = function (e) {
+        if (e.which != 1) return;
+        var zindex = getComputedStyle(elem).zIndex - 0;
+        if (document.zindexCard > zindex) elem.style.zIndex = ++document.zindexCard;
+    }*/
+
+    moveHeader.onmousedown = function (e) {
+        // если нажата не левая клавиша или статическое позиционирование - то выходим
+        if (e.which != 1 || getComputedStyle(elem).position == 'static') return;
+        dragObject.elem = elem;
+        dragObject.downX = e.pageX;
+        dragObject.downY = e.pageY;
+        var box = elem.getBoundingClientRect();
+        dragObject.shiftX = e.pageX-box.left - pageXOffset;
+        dragObject.shiftY = e.pageY-box.top - pageYOffset;
+        dragObject.left = parseFloat(getComputedStyle(dragObject.elem)['left']);
+        if (dragObject.left) dragObject.left -= dragObject.elem.offsetLeft;
+        dragObject.top = parseFloat(getComputedStyle(dragObject.elem)['top']);
+        if (dragObject.top) dragObject.top -= dragObject.elem.offsetTop;
+        document.onmousemove = document.ontochmove = function (e) {
+            if (!dragObject.elem) return;
+            // Если перенос не начат и сдвиг менее  delta - перенос не начинаем
+            if ( !dragObject.start ) {
+                if (Math.abs(e.pageX - dragObject.downX) < delta &&
+                    Math.abs(e.pageY - dragObject.downY) < delta ) return;
+                dragObject.start = true;
+                elem.ondragstart = function () {
+                    return false;
+                }
+
+                /*if (dragObject.elem.parentElement != document.body) document.body.appendChild(dragObject.elem);
+                dragObject.elem.style.zIndex = 9999;
+                dragObject.elem.style.position = 'absolute';
+                dragObject.elem.style.zIndex = ++document.zindexCard;*/
+            }
+            var leftPos=e.pageX-dragObject.shiftX;
+            if (leftPos<0) leftPos=0;
+            else if (leftPos > (innerWidth-dragObject.elem.offsetWidth))
+                leftPos = innerWidth-dragObject.elem.offsetWidth;
+            var topPos=e.pageY-dragObject.shiftY;
+            if (topPos<0) topPos=0;
+            else if (topPos > (innerHeight-dragObject.elem.offsetHeight))
+                topPos = innerHeight-dragObject.elem.offsetHeight;
+            dragObject.elem.style.left=(leftPos+dragObject.left)+'px';
+            dragObject.elem.style.top=(topPos+dragObject.top)+'px';
+        }
+        document.onmouseup = function (e) {
+            document.onmousemove = null;
+            dragObject = {};
+        }
+    }
+    moveHeader.addEventListener('touchmove',function(e) {
+        if (e.changedTouches.length>1 || getComputedStyle(elem).position == 'static') return;
+        e.preventDefault();
+        e.stopPropagation();
+        if (dragObject === {} || !dragObject.elem) {
+            dragObject.elem = elem;
+            dragObject.downX = e.targetTouches[0].pageX;
+            dragObject.downY = e.targetTouches[0].pageY;
+            var box=elem.getBoundingClientRect();
+            dragObject.shiftX = dragObject.downX-box.left - pageXOffset;
+            dragObject.shiftY = dragObject.downY-box.top - pageYOffset;
+            dragObject.left = parseFloat(getComputedStyle(dragObject.elem)['left']);
+            if (dragObject.left) dragObject.left -= dragObject.elem.offsetLeft;
+            dragObject.top = parseFloat(getComputedStyle(dragObject.elem)['top']);
+            if (dragObject.top) dragObject.top -= dragObject.elem.offsetTop;
+            dragObject.time = new Date().getTime();
+        } else {
+            //if (!dragObject.elem) return;
+            // Если перенос не начат и сдвиг менее  delta - перенос не начинаем
+            if ( !dragObject.start ) {
+                if (Math.abs(e.changedTouches[0].pageX - dragObject.downX) < delta &&
+                    Math.abs(e.changedTouches[0].pageY - dragObject.downY) < delta ) return;
+                dragObject.start = true;
+                elem.ondragstart = function () {
+                    return false;
+                }
+                /*
+                if (dragObject.elem.parentElement != document.body) document.body.appendChild(dragObject.elem);
+                dragObject.elem.style.zIndex = 9999;
+                dragObject.elem.style.position = 'absolute';
+                dragObject.elem.style.zIndex = ++document.zindexCard;*/
+            }
+            var leftPos=e.changedTouches[0].pageX-dragObject.shiftX;
+            if (leftPos<0) leftPos=0;
+            else if (leftPos > (innerWidth-dragObject.elem.offsetWidth))
+                leftPos = innerWidth-dragObject.elem.offsetWidth;
+            var topPos=e.changedTouches[0].pageY-dragObject.shiftY;
+            if (topPos<0) topPos=0;
+            else if (topPos > (innerHeight-dragObject.elem.offsetHeight))
+                topPos = innerHeight-dragObject.elem.offsetHeight;
+            dragObject.elem.style.left=(leftPos+dragObject.left)+'px';
+            dragObject.elem.style.top=(topPos+dragObject.top)+'px';
+        }
+        document.ontouchend = function (e) {
+            document.onmousemove = null;
+            dragObject = {};
+        }
+    }, false);
+}
